@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package image;
+
+option java_package = "image";
+option java_outer_classname = "ImageServiceOuterClass";
+
+service ImageService {
+  rpc SaveImage (SaveImageRequest) returns (SaveImageResponse);
+  rpc GetImages (GetImagesRequest) returns (GetImagesResponse);
+}
+
+message SaveImageRequest {
+  int64 incident_id = 1;
+  bytes file_data = 2;
+  int64 size = 3;
+  string type = 4;
+}
+
+message SaveImageResponse {
+  int64 image_id = 1;
+  string url = 2;
+}
+
+message GetImagesRequest {
+  int64 incident_id = 1;
+}
+
+message GetImagesResponse {
+  repeated ImageData images = 1;
+}
+
+message ImageData {
+  int64 image_id = 1;
+  int64 incident_id = 2;
+  string file_name = 3;
+  bytes file_data = 4;
+  string type = 5;
+  int64 size = 6;
+  string url = 7;
+}

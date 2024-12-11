@@ -1,0 +1,64 @@
+databaseChangeLog:
+  - changeSet:
+      id: createIncident-incident-table
+      author: ABrombin
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: HALT
+        - not:
+          - tableExists:
+              - tableName: incidents
+      changes:
+        - createTable:
+            tableName: incidents
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: date_create
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: date_closed
+                  type: timestamp
+              - column:
+                  name: analyst_id
+                  type: bigint
+              - column:
+                  name: initiator_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: priority
+                  type: varchar(50)
+              - column:
+                  name: category
+                  type: varchar(50)
+              - column:
+                  name: responsible_service
+                  type: varchar(50)
+rollback:
+  - dropTable:
+      tableName: incidents
