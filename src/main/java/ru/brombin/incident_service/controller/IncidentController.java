@@ -1,6 +1,5 @@
 package ru.brombin.incident_service.controller;
 
-import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -17,7 +16,6 @@ import ru.brombin.incident_service.dto.IncidentWithDetailsDto;
 import ru.brombin.incident_service.entity.*;
 import ru.brombin.incident_service.facade.IncidentFacade;
 import ru.brombin.incident_service.service.IncidentService;
-import ru.brombin.incident_service.service.UserService;
 
 import java.util.List;
 
@@ -33,7 +31,7 @@ public class IncidentController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST', 'USER')")
-    public ResponseEntity<Incident> createIncident(@Valid @ModelAttribute IncidentDto incidentDto,
+    public ResponseEntity<Incident> createIncident(@ModelAttribute IncidentDto incidentDto,
                                                    @RequestParam(value = "image_files", required = false) List<MultipartFile> images) {
         Incident incident = incidentFacade.createIncident(incidentDto, images);
         return ResponseEntity.status(HttpStatus.CREATED).body(incident);
@@ -41,7 +39,7 @@ public class IncidentController {
 
     @PutMapping("/{incidentId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST', 'USER')")
-    public ResponseEntity<Incident> updateIncident(@PathVariable Long incidentId, @Valid @RequestBody IncidentDto incidentDto) {
+    public ResponseEntity<Incident> updateIncident(@PathVariable Long incidentId, @RequestBody IncidentDto incidentDto) {
         Incident updatedIncident = incidentFacade.updateIncident(incidentId, incidentDto);
         return ResponseEntity.ok(updatedIncident);
     }
@@ -62,16 +60,7 @@ public class IncidentController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
-    public ResponseEntity<List<Incident>> getAllIncidents() {
-        List<Incident> incidents = incidentService.findAll();
-
-        log.info("Total incidents retrieved: {}", incidents.size());
-        return ResponseEntity.ok(incidents);
-    }
-
-    @GetMapping("/paginated")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
-    public ResponseEntity<Page<Incident>> getAllIncidentsPaginated(
+    public ResponseEntity<Page<Incident>> getAllIncidents(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 

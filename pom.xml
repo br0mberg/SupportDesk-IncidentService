@@ -181,6 +181,11 @@
 			<artifactId>jakarta.annotation-api</artifactId>
 			<version>${jakarta.annotation-api.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<extensions>
