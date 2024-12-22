@@ -17,6 +17,8 @@ import ru.brombin.incident_service.service.grpc.GrpcClientService;
 import ru.brombin.incident_service.service.kafka.KafkaImageService;
 import ru.brombin.incident_service.service.IncidentService;
 import ru.brombin.incident_service.service.UserService;
+import ru.brombin.incident_service.util.exceptions.NotFoundException;
+import ru.brombin.incident_service.util.messages.IncidentLogMessages;
 
 import java.util.Collections;
 import java.util.List;
@@ -71,25 +73,25 @@ public class IncidentFacadeImpl implements IncidentFacade {
     @Transactional
     public IncidentWithDetailsDto findIncidentWithDetails(Long incidentId) {
         Incident incident = incidentService.findById(incidentId);
-        UserDto initiatorDto = userService.findById(incident.getInitiatorId());
+        UserDto initiatorDto = userService.findById(incident.getInitiatorId())
+                .orElseThrow(() -> new NotFoundException("Initiator not found for Incident ID: " + incidentId));
 
-        // analyst can be null, but initiator must be not null (will throw exception in userService)
-        Optional<UserDto> analystDto = Optional.empty();
-
-        if (incident.getAnalystId() != null) {
-            analystDto = Optional.of(userService.findById(incident.getAnalystId()));
-        }
+        Optional<UserDto> analystDto = userService.findById(incident.getAnalystId());
 
         List<ImageDto> imagesDto = imageMapper.toImageDtoList(grpcClientService.findImagesByIncidentId(incidentId));
 
-        return incidentMapper.toIncidentWithDetailsDto(incident, imagesDto, analystDto.orElse(null), initiatorDto);
-
+        return incidentMapper.toIncidentWithDetailsDto(
+                incident,
+                imagesDto,
+                analystDto.orElse(null),
+                initiatorDto
+        );
     }
 
     @Override
     @Transactional
     public Incident updateAnalyst(Long incidentId, Long analystId) {
-        userService.findById(analystId);
+        userService.findById(analystId).orElseThrow(() -> new NotFoundException("Analyst not found with ID: " + analystId));
         return incidentService.updateAnalyst(incidentId, analystId);
     }
 
@@ -98,7 +100,8 @@ public class IncidentFacadeImpl implements IncidentFacade {
     public Incident updateIncident(Long incidentId, IncidentDto incidentDto) {
         String currentUserRole = userService.getCurrentUserRole();
         Incident existingIncident = incidentService.findById(incidentId);
-        if ("ROLE_USER".equals(currentUserRole)) {
+
+        if (currentUserRole.equals("ROLE_USER")) {
             existingIncident.setName(incidentDto.name());
             existingIncident.setDescription(incidentDto.description());
             return incidentRepository.save(existingIncident);
@@ -114,7 +117,7 @@ public class IncidentFacadeImpl implements IncidentFacade {
 
         kafkaImageService.deleteImage(new DeleteImageRequest(incidentId), jwtTokenProvider.extractJwtTokenValue());
 
-        incidentRepository.deleteById(incidentId);
+        incidentService.delete(incidentId);
         log.info("Incident with ID '{}' and associated images deleted", incidentId);
     }
 }

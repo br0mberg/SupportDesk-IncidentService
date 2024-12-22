@@ -12,6 +12,7 @@ import ru.brombin.incident_service.entity.*;
 import ru.brombin.incident_service.mapper.IncidentMapper;
 import ru.brombin.incident_service.repository.IncidentRepository;
 import ru.brombin.incident_service.util.exceptions.NotFoundException;
+import ru.brombin.incident_service.util.messages.IncidentLogMessages;
 
 import java.util.List;
 
@@ -28,21 +29,14 @@ public class IncidentServiceImpl implements IncidentService{
 
     @Override
     public Page<Incident> findAllWithPagination(int page, int size) {
-        log.info("Fetching incidents with pagination: page={}, size={}", page, size);
+        log.info(IncidentLogMessages.INCIDENT_FETCH_PAGINATED.getFormatted(page, size));
         return incidentRepository.findAll(PageRequest.of(page, size));
     }
 
     @Override
-    public List<Incident> findAll() {
-        log.info("Fetching all incidents");
-        return incidentRepository.findAll();
-    }
-
-    @Override
     public Incident findById(Long id) {
-        log.info("Fetching incident with ID '{}'", id);
         return incidentRepository.findById(id).orElseThrow(() ->
-                new NotFoundException("Incident not found with ID: " + id));
+                new NotFoundException(IncidentLogMessages.INCIDENT_NOT_FOUND.getFormatted(id)));
     }
 
     @Override
@@ -51,8 +45,7 @@ public class IncidentServiceImpl implements IncidentService{
         incident.setInitiatorId(initiatorId);
 
         Incident savedIncident = incidentRepository.save(incident);
-        log.info("Incident '{}' has been successfully created with ID '{}'",
-                savedIncident.getName(), savedIncident.getId());
+        log.info(IncidentLogMessages.INCIDENT_CREATED.getFormatted(savedIncident.getId()));
         return savedIncident;
     }
 
@@ -63,7 +56,7 @@ public class IncidentServiceImpl implements IncidentService{
         incidentMapper.updateIncidentFromDto(incidentDto, existingIncident);
 
         Incident updatedIncident = incidentRepository.save(existingIncident);
-        log.info("Incident '{}' has been successfully updated with ID '{}'", updatedIncident.getName(), updatedIncident.getId());
+        log.info(IncidentLogMessages.INCIDENT_UPDATED.getFormatted(updatedIncident.getId()));
         return updatedIncident;
     }
 
@@ -74,7 +67,7 @@ public class IncidentServiceImpl implements IncidentService{
 
         Incident updatedIncident = incidentRepository.save(existingIncident);
 
-        log.info("Incident status updated for ID '{}', new status='{}'", id, status);
+        log.info(IncidentLogMessages.INCIDENT_STATUS_UPDATED.getFormatted(id, status));
         return updatedIncident;
     }
 
@@ -85,7 +78,7 @@ public class IncidentServiceImpl implements IncidentService{
 
         Incident updatedIncident = incidentRepository.save(existingIncident);
 
-        log.info("Incident analyst updated for ID '{}', new analyst ID='{}'", id, analystId);
+        log.info(IncidentLogMessages.INCIDENT_ANALYST_UPDATED.getFormatted(id, analystId));
         return updatedIncident;
     }
 
@@ -96,7 +89,7 @@ public class IncidentServiceImpl implements IncidentService{
 
         Incident updatedIncident = incidentRepository.save(existingIncident);
 
-        log.info("Incident priority updated for ID '{}', new priority='{}'", id, priority);
+        log.info(IncidentLogMessages.INCIDENT_PRIORITY_UPDATED.getFormatted(id, priority));
         return updatedIncident;
     }
 
@@ -107,7 +100,7 @@ public class IncidentServiceImpl implements IncidentService{
 
         Incident updatedIncident = incidentRepository.save(existingIncident);
 
-        log.info("Incident responsible service updated for ID '{}', new service='{}'", id, service);
+        log.info(IncidentLogMessages.INCIDENT_RESPONSIBLE_SERVICE_UPDATED.getFormatted(id, service));
         return updatedIncident;
     }
 
@@ -118,7 +111,7 @@ public class IncidentServiceImpl implements IncidentService{
 
         Incident updatedIncident = incidentRepository.save(existingIncident);
 
-        log.info("Incident category updated for ID '{}', new category='{}'", incidentId, category);
+        log.info(IncidentLogMessages.INCIDENT_CATEGORY_UPDATED.getFormatted(incidentId, category));
         return updatedIncident;
     }
 
@@ -126,9 +119,9 @@ public class IncidentServiceImpl implements IncidentService{
     public void delete(Long id) {
         try {
             incidentRepository.deleteById(id);
-            log.info("Incident with ID '{}' has been deleted", id);
+            log.info(IncidentLogMessages.INCIDENT_DELETED.getFormatted(id));
         } catch (EmptyResultDataAccessException e) {
-            throw new NotFoundException("Incident with ID " + id + " not found");
+            throw new NotFoundException(IncidentLogMessages.INCIDENT_NOT_FOUND.getFormatted(id));
         }
     }
 }

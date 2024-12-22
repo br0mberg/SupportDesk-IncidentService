@@ -3,6 +3,7 @@ package ru.brombin.incident_service.service;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -10,38 +11,70 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 import ru.brombin.incident_service.dto.UserDto;
 import org.springframework.security.core.GrantedAuthority;
+import ru.brombin.incident_service.service.grpc.GrpcClientService;
+import ru.brombin.incident_service.util.messages.SecurityLogMessages;
+import ru.brombin.incident_service.util.messages.UserLogMessages;
+import user.UserServiceOuterClass.UserResponse;
 
 import java.util.Optional;
+import static lombok.AccessLevel.PRIVATE;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level=PRIVATE, makeFinal = true)
 public class UserServiceImpl implements UserService {
+
+    GrpcClientService grpcClientService;
+
+    @Value("${jwt.token.user-id.field-name}")
+    String userIdFieldName;
+
     public Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         if (authentication instanceof JwtAuthenticationToken jwtAuthenticationToken) {
             Jwt jwt = jwtAuthenticationToken.getToken();
-            // TODO: получение id из токена (записывать id пользователя как поле в KK (не sub))
-            return 1L;
+            Long userId = Long.parseLong(jwt.getClaimAsString(userIdFieldName));
+
+            log.info(UserLogMessages.CURRENT_USER_ID_FETCHED.getFormatted(userId));
+            return userId;
         }
-        throw new IllegalStateException("No JWT token found in security context");
+
+        throw new SecurityException(SecurityLogMessages.NO_JWT_TOKEN_FOUND.getFormatted());
     }
 
-    public UserDto findById(Long userId) {
-        // TODO: Получение пользователя из микросервиса по id из токена
-        // проверка Optional и выброс исключения
-        return null; // Заглушка с фиктивными данными
+    @Override
+    public Optional<UserDto> findById(Long userId) {
+        UserResponse userResponse = grpcClientService.findUserById(userId);
+
+        if (userResponse == null) {
+            return Optional.empty();
+        }
+
+        UserDto userDto = new UserDto(userResponse.getRole(), userResponse.getFullName(),
+                userResponse.getLogin(), userResponse.getEmail(),
+                userResponse.getPhoneNumber(), userResponse.getWorkplaceLocation());
+
+        log.info(UserLogMessages.CURRENT_USER_ROLE_FETCHED.getFormatted(userDto.role()));
+
+        return Optional.of(userDto);
     }
 
     public String getCurrentUserRole() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication != null) {
-            return authentication.getAuthorities().stream()
+            String role = authentication.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
-                    .filter(role -> role.startsWith("ROLE_"))
+                    .filter(r -> r.startsWith("ROLE_"))
                     .findFirst()
-                    .orElseThrow(() -> new IllegalStateException("Роли для текущего пользователя не найдены"));
+                    .orElseThrow(() -> new IllegalStateException(SecurityLogMessages.USER_ROLE_NOT_FOUND.getFormatted()));
+
+            log.info(UserLogMessages.CURRENT_USER_ROLE_FETCHED.getFormatted(role));
+            return role;
         }
 
-        throw new IllegalStateException("Аутентификация в контексте безопасности не найдена");
+        throw new IllegalStateException(SecurityLogMessages.AUTHENTICATION_NOT_FOUND.getFormatted());
     }
 }

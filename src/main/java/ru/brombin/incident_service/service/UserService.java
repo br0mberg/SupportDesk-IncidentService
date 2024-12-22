@@ -6,6 +6,6 @@ import java.util.Optional;
 
 public interface UserService {
     Long getCurrentUserId();
-    UserDto findById(Long userId);
+    Optional<UserDto> findById(Long userId);
     String getCurrentUserRole();
 }

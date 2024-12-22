@@ -2,8 +2,8 @@ spring.application.name=incident-service
 server.port=8081
 
 spring.datasource.url=jdbc:postgresql://localhost:5432/incident_service
-spring.datasource.username=
-spring.datasource.password=
+spring.datasource.username=postgres
+spring.datasource.password=9320
 spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.show-sql=true
 
@@ -12,6 +12,7 @@ spring.liquibase.change-log=classpath:db/changelog/db.changelog-master.yaml
 keycloak.realm=IncidentManagement
 keycloak.resource=incident-service
 keycloak.public-client=true
+jwt.token.user-id.field-name=user_id
 
 spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8080/realms/IncidentManagement
 
@@ -24,6 +25,9 @@ spring.kafka.producer.acks=all
 spring.kafka.producer.delivery-timeout=120000
 spring.kafka.producer.retry-backoff=1000
 spring.kafka.producer.linger-ms=10
+kafka.delete-image.topic=delete-image-topic
 
 grpc.client.image-service.host=localhost
 grpc.client.image-service.port=50051
+grpc.client.user-service.host=localhost
+grpc.client.user-service.port=50052

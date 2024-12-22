@@ -1,6 +1,5 @@
 package ru.brombin.incident_service.service.grpc;
 
-import com.google.protobuf.ByteString;
 import image.ImageServiceGrpc.*;
 import image.ImageServiceOuterClass.*;
 import io.grpc.StatusRuntimeException;
@@ -10,21 +9,26 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.brombin.incident_service.dto.ImageDto;
-import ru.brombin.incident_service.dto.IncidentWithDetailsDto;
 import ru.brombin.incident_service.entity.Incident;
 import ru.brombin.incident_service.mapper.ImageRequestMapper;
 import ru.brombin.incident_service.service.JwtClientInterceptor;
 import ru.brombin.incident_service.util.exceptions.ImageProcessingException;
+import user.UserServiceGrpc.UserServiceBlockingStub;
+import user.UserServiceOuterClass.UserResponse;
+import user.UserServiceOuterClass.GetUserRequest;
 
 import java.util.List;
+
+import static lombok.AccessLevel.PRIVATE;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@FieldDefaults(level = PRIVATE, makeFinal = true)
 public class GrpcClientServiceImpl implements GrpcClientService{
 
     ImageServiceBlockingStub imageServiceStub;
+    UserServiceBlockingStub userServiceStub;
     ImageRequestMapper imageRequestMapper;
 
     @Override
@@ -74,5 +78,23 @@ public class GrpcClientServiceImpl implements GrpcClientService{
                 log.error("Unexpected error while fetching images for Incident '{}': {}", incidentId, e.getMessage(), e);
                 throw new ImageProcessingException("Unexpected error fetching images for Incident: " + incidentId, e);
             }
+    }
+
+    @Override
+    public UserResponse findUserById(Long id) {
+        GetUserRequest request = GetUserRequest.newBuilder()
+                .setId(id)
+                .build();
+
+        try {
+            UserServiceBlockingStub stubWithInterceptor = userServiceStub.withInterceptors(new JwtClientInterceptor());
+            return stubWithInterceptor.getUserById(request);
+        } catch (StatusRuntimeException e) {
+            log.error("gRPC error fetching user by ID '{}': {}", id, e.getStatus().getDescription(), e);
+            throw new RuntimeException("Failed to fetch user by ID via gRPC", e);
+        } catch (Exception e) {
+            log.error("Unexpected error fetching user by ID '{}': {}", id, e.getMessage(), e);
+            throw new RuntimeException("Unexpected error fetching user by ID", e);
+        }
     }
 }

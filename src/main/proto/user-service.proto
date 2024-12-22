@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package user;
+
+option java_package = "user";
+option java_outer_classname = "UserServiceOuterClass";
+
+service UserService {
+  rpc GetUserById(GetUserRequest) returns (UserResponse);
+}
+
+message GetUserRequest {
+  int64 id = 1;
+}
+
+message UserResponse {
+  string role = 1;
+  string fullName = 2;
+  string login = 3;
+  string email = 4;
+  string phoneNumber = 5;
+  string workplaceLocation = 6;
+}

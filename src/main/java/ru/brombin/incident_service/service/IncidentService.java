@@ -4,11 +4,8 @@ import org.springframework.data.domain.Page;
 import ru.brombin.incident_service.dto.IncidentDto;
 import ru.brombin.incident_service.entity.*;
 
-import java.util.List;
-
 public interface IncidentService {
     Incident findById(Long id);
-    List<Incident> findAll();
     Page<Incident> findAllWithPagination(int page, int size);
     Incident save(Long initiatorId, IncidentDto incidentDto);
     Incident update(Long id, IncidentDto incidentDto);
