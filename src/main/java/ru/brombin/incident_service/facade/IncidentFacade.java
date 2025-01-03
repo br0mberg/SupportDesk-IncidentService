@@ -8,9 +8,9 @@ import ru.brombin.incident_service.entity.Incident;
 import java.util.List;
 
 public interface IncidentFacade {
-    Incident createIncident(IncidentDto incidentDto, List<MultipartFile> images);
+    IncidentDto createIncident(IncidentDto incidentDto, List<MultipartFile> images);
     IncidentWithDetailsDto findIncidentWithDetails(Long incidentId);
-    Incident updateAnalyst(Long incidentId, Long analystId);
-    Incident updateIncident(Long incidentId, IncidentDto incidentDto);
+    IncidentDto updateAnalyst(Long incidentId, Long analystId);
+    IncidentDto updateIncident(Long incidentId, IncidentDto incidentDto);
     void delete(Long incidentId);
 }

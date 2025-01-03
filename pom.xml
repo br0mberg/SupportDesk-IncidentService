@@ -46,6 +46,8 @@
 		<google.protobuf.java>4.28.3</google.protobuf.java>
 		<kr.motd.maven.version>1.7.1</kr.motd.maven.version>
 		<jakarta.annotation-api.version>3.0.0</jakarta.annotation-api.version>
+		<swagger-annotations.version>2.1.6</swagger-annotations.version>
+		<springdoc-openapi-ui.version>1.5.2</springdoc-openapi-ui.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -185,6 +187,16 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-annotations</artifactId>
+			<version>${swagger-annotations.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>${springdoc-openapi-ui.version}</version>
 		</dependency>
 	</dependencies>
 	<build>

@@ -20,18 +20,16 @@ public interface IncidentMapper {
     @Mapping(target="status", expression = "java(getStatus(dto))")
     Incident toEntity(IncidentDto dto);
 
+    IncidentDto toDto(Incident incident);
+
     default IncidentStatus getStatus(IncidentDto dto) {
-        return dto.incidentStatus() != null ? dto.incidentStatus() : IncidentStatus.OPEN;
+        return dto.status() != null ? dto.status() : IncidentStatus.OPEN;
     }
 
     @Mapping(target="dateCreate", ignore = true)
-    @Mapping(target="status", expression = "java(dto.incidentStatus() != null ? dto.incidentStatus() : entity.getStatus())")
+    @Mapping(target="status", expression = "java(getStatus(dto))")
     void updateIncidentFromDto(IncidentDto dto, @MappingTarget Incident entity);
 
-    @Mapping(target = "incident", source = "incident")
-    @Mapping(target = "imageDtos", source = "imageDtos")
-    @Mapping(target = "analyst", source = "analystDto")
-    @Mapping(target = "initiator", source = "initiatorDto")
     IncidentWithDetailsDto toIncidentWithDetailsDto(Incident incident,
                                                     List<ImageDto> imageDtos,
                                                     UserDto analystDto,

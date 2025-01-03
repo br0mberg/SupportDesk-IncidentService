@@ -1,7 +1,9 @@
 package ru.brombin.incident_service.util.messages;
 
 public enum IncidentLogMessages {
-    INCIDENT_FETCH_PAGINATED("Fetching incidents with pagination: page={}, size={}"),  // New log message
+
+    INCIDENT_FETCH_ALL("Fetching all incidents"),
+    INCIDENT_FETCH_PAGINATED("Fetching incidents with pagination: page={}, size={}"),
     INCIDENT_NOT_FOUND("Incident with ID '%s' not found"),
     INCIDENT_UPDATED("Incident with ID: %s updated successfully"),
     INCIDENT_CREATED("Incident with ID: %s created successfully"),

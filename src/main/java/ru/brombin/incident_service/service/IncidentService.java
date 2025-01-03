@@ -6,13 +6,13 @@ import ru.brombin.incident_service.entity.*;
 
 public interface IncidentService {
     Incident findById(Long id);
-    Page<Incident> findAllWithPagination(int page, int size);
+    Page<IncidentDto> findAllWithPagination(int page, int size);
     Incident save(Long initiatorId, IncidentDto incidentDto);
-    Incident update(Long id, IncidentDto incidentDto);
-    Incident updateStatus(Long id, IncidentStatus status);
-    Incident updateAnalyst(Long id, Long analystId);
-    Incident updatePriority(Long id, IncidentPriority priority);
-    Incident updateResponsibleService(Long id, ResponsibleService service);
-    Incident updateCategory(Long incidentId, IncidentCategory category);
+    IncidentDto update(Long id, IncidentDto incidentDto);
+    IncidentDto updateStatus(Long id, IncidentStatus status);
+    IncidentDto updateAnalyst(Long id, Long analystId);
+    IncidentDto updatePriority(Long id, IncidentPriority priority);
+    IncidentDto updateResponsibleService(Long id, ResponsibleService service);
+    IncidentDto updateCategory(Long incidentId, IncidentCategory category);
     void delete(Long id);
 }

@@ -13,7 +13,7 @@ public record IncidentWithDetailsDto(
         @Valid
         List<@Valid ImageDto> imageDtos,
 
-        @Valid UserDto analyst,
+        @Valid UserDto analystDto,
 
-        @Valid UserDto initiator
+        @Valid UserDto initiatorDto
 ) {}

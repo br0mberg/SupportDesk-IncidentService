@@ -25,9 +25,9 @@ public record IncidentDto(
         @Positive(message = "Analyst ID must be positive")
         Long analystId,
 
-        IncidentStatus incidentStatus,
+        IncidentStatus status,
 
-        IncidentPriority incidentPriority,
+        IncidentPriority priority,
 
         IncidentCategory category,
 

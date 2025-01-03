@@ -28,19 +28,18 @@ import java.util.List;
 public class IncidentController {
     IncidentFacade incidentFacade;
     IncidentService incidentService;
-
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST', 'USER')")
-    public ResponseEntity<Incident> createIncident(@ModelAttribute IncidentDto incidentDto,
+    public ResponseEntity<IncidentDto> createIncident(@ModelAttribute IncidentDto incidentDto,
                                                    @RequestParam(value = "image_files", required = false) List<MultipartFile> images) {
-        Incident incident = incidentFacade.createIncident(incidentDto, images);
-        return ResponseEntity.status(HttpStatus.CREATED).body(incident);
+        IncidentDto createdIncident = incidentFacade.createIncident(incidentDto, images);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdIncident);
     }
 
     @PutMapping("/{incidentId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST', 'USER')")
-    public ResponseEntity<Incident> updateIncident(@PathVariable Long incidentId, @RequestBody IncidentDto incidentDto) {
-        Incident updatedIncident = incidentFacade.updateIncident(incidentId, incidentDto);
+    public ResponseEntity<IncidentDto> updateIncident(@PathVariable Long incidentId, @RequestBody IncidentDto incidentDto) {
+        IncidentDto updatedIncident = incidentFacade.updateIncident(incidentId, incidentDto);
         return ResponseEntity.ok(updatedIncident);
     }
 
@@ -60,46 +59,46 @@ public class IncidentController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
-    public ResponseEntity<Page<Incident>> getAllIncidents(
+    public ResponseEntity<Page<IncidentDto>> getAllIncidents(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        Page<Incident> incidents = incidentService.findAllWithPagination(page, size);
+        Page<IncidentDto> incidents = incidentService.findAllWithPagination(page, size);
         return ResponseEntity.ok(incidents);
     }
 
     @PatchMapping("/{incidentId}/status")
     @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
-    public ResponseEntity<Incident> assignStatus(@PathVariable Long incidentId, @RequestBody IncidentStatus status) {
-        Incident updatedIncident = incidentService.updateStatus(incidentId, status);
+    public ResponseEntity<IncidentDto> assignStatus(@PathVariable Long incidentId, @RequestBody IncidentStatus status) {
+        IncidentDto updatedIncident = incidentService.updateStatus(incidentId, status);
         return ResponseEntity.ok(updatedIncident);
     }
 
     @PatchMapping("/{incidentId}/analyst")
     @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
-    public ResponseEntity<Incident> assignAnalyst(@PathVariable Long incidentId, @RequestBody Long analystId) {
-        Incident updatedIncident = incidentFacade.updateAnalyst(incidentId, analystId);
+    public ResponseEntity<IncidentDto> assignAnalyst(@PathVariable Long incidentId, @RequestBody Long analystId) {
+        IncidentDto updatedIncident = incidentFacade.updateAnalyst(incidentId, analystId);
         return ResponseEntity.ok(updatedIncident);
     }
 
     @PatchMapping("/{incidentId}/priority")
     @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
-    public ResponseEntity<Incident> assignPriority(@PathVariable Long incidentId, @RequestBody IncidentPriority priority) {
-        Incident updatedIncident = incidentService.updatePriority(incidentId, priority);
+    public ResponseEntity<IncidentDto> assignPriority(@PathVariable Long incidentId, @RequestBody IncidentPriority priority) {
+        IncidentDto updatedIncident = incidentService.updatePriority(incidentId, priority);
         return ResponseEntity.ok(updatedIncident);
     }
 
     @PatchMapping("/{incidentId}/category")
     @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
-    public ResponseEntity<Incident> assignCategory(@PathVariable Long incidentId, @RequestBody IncidentCategory category) {
-        Incident updatedIncident = incidentService.updateCategory(incidentId, category);
+    public ResponseEntity<IncidentDto> assignCategory(@PathVariable Long incidentId, @RequestBody IncidentCategory category) {
+        IncidentDto updatedIncident = incidentService.updateCategory(incidentId, category);
         return ResponseEntity.ok(updatedIncident);
     }
 
     @PatchMapping("/{incidentId}/responsible-service")
     @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
-    public ResponseEntity<Incident> assignResponsibleService(@PathVariable Long incidentId, @RequestBody ResponsibleService service) {
-        Incident updatedIncident = incidentService.updateResponsibleService(incidentId, service);
+    public ResponseEntity<IncidentDto> assignResponsibleService(@PathVariable Long incidentId, @RequestBody ResponsibleService service) {
+        IncidentDto updatedIncident = incidentService.updateResponsibleService(incidentId, service);
         return ResponseEntity.ok(updatedIncident);
     }
 }

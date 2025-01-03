@@ -43,7 +43,7 @@ public class IncidentFacadeImpl implements IncidentFacade {
 
     @Override
     @Transactional
-    public Incident createIncident(IncidentDto incidentDto, List<MultipartFile> images) {
+    public IncidentDto createIncident(IncidentDto incidentDto, List<MultipartFile> images) {
         Long initiatorId = userService.getCurrentUserId();
         Incident incident = incidentService.save(initiatorId, incidentDto);
 
@@ -55,7 +55,7 @@ public class IncidentFacadeImpl implements IncidentFacade {
 
         log.info("Incident '{}' created with ID '{}' and linked to '{}' images",
                 incident.getName(), incident.getId(), imageDtoList.size());
-        return incident;
+        return incidentMapper.toDto(incident);
     }
 
     private List<ImageDto> processImages(Long incidentId, List<MultipartFile> images) {
@@ -90,21 +90,21 @@ public class IncidentFacadeImpl implements IncidentFacade {
 
     @Override
     @Transactional
-    public Incident updateAnalyst(Long incidentId, Long analystId) {
+    public IncidentDto updateAnalyst(Long incidentId, Long analystId) {
         userService.findById(analystId).orElseThrow(() -> new NotFoundException("Analyst not found with ID: " + analystId));
         return incidentService.updateAnalyst(incidentId, analystId);
     }
 
     @Override
     @Transactional
-    public Incident updateIncident(Long incidentId, IncidentDto incidentDto) {
+    public IncidentDto updateIncident(Long incidentId, IncidentDto incidentDto) {
         String currentUserRole = userService.getCurrentUserRole();
         Incident existingIncident = incidentService.findById(incidentId);
 
         if (currentUserRole.equals("ROLE_USER")) {
             existingIncident.setName(incidentDto.name());
             existingIncident.setDescription(incidentDto.description());
-            return incidentRepository.save(existingIncident);
+            return incidentMapper.toDto(incidentRepository.save(existingIncident));
         }
 
         return incidentService.update(incidentId, incidentDto);
