@@ -14,7 +14,7 @@ import org.springframework.security.core.GrantedAuthority;
 import ru.brombin.incident_service.service.grpc.GrpcClientService;
 import ru.brombin.incident_service.util.messages.SecurityLogMessages;
 import ru.brombin.incident_service.util.messages.UserLogMessages;
-import user.UserServiceOuterClass.UserResponse;
+import user.UserServiceOuterClass.*;
 
 import java.util.Optional;
 import static lombok.AccessLevel.PRIVATE;
@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<UserDto> findById(Long userId) {
-        UserResponse userResponse = grpcClientService.findUserById(userId);
+       UserResponse userResponse = grpcClientService.findUserById(userId);
 
         if (userResponse == null) {
             return Optional.empty();

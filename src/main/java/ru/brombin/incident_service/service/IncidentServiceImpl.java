@@ -5,14 +5,19 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import ru.brombin.incident_service.builder.IncidentSpecificationBuilder;
 import ru.brombin.incident_service.dto.IncidentDto;
+import ru.brombin.incident_service.dto.IncidentFilterDto;
 import ru.brombin.incident_service.entity.*;
 import ru.brombin.incident_service.mapper.IncidentMapper;
 import ru.brombin.incident_service.repository.IncidentRepository;
 import ru.brombin.incident_service.util.exceptions.NotFoundException;
 import ru.brombin.incident_service.util.messages.IncidentLogMessages;
+
+import java.lang.reflect.Field;
 
 import static lombok.AccessLevel.PRIVATE;
 
@@ -24,12 +29,13 @@ public class IncidentServiceImpl implements IncidentService{
 
     IncidentRepository incidentRepository;
     IncidentMapper incidentMapper;
+    IncidentSpecificationBuilder specificationBuilder;
 
     @Override
-    public Page<IncidentDto> findAllWithPagination(int page, int size) {
-        log.info(IncidentLogMessages.INCIDENT_FETCH_PAGINATED.getFormatted(page, size));
-        return incidentRepository.findAll(PageRequest.of(page, size))
-                .map(incidentMapper::toDto);
+    public Page<IncidentDto> getFilteredIncidents(IncidentFilterDto filterDto, Pageable pageable) {
+        Specification<Incident> specification = specificationBuilder.build(filterDto);
+        Page<Incident> incidents = incidentRepository.findAll(specification, pageable);
+        return incidents.map(incidentMapper::toDto);
     }
 
     @Override

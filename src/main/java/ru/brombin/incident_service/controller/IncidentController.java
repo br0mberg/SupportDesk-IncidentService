@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,11 +13,13 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.brombin.incident_service.dto.IncidentDto;
+import ru.brombin.incident_service.dto.IncidentFilterDto;
 import ru.brombin.incident_service.dto.IncidentWithDetailsDto;
 import ru.brombin.incident_service.entity.*;
 import ru.brombin.incident_service.facade.IncidentFacade;
 import ru.brombin.incident_service.service.IncidentService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -60,10 +63,11 @@ public class IncidentController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
     public ResponseEntity<Page<IncidentDto>> getAllIncidents(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @ModelAttribute IncidentFilterDto incidentFilterDto,
+            Pageable pageable) {
 
-        Page<IncidentDto> incidents = incidentService.findAllWithPagination(page, size);
+        Page<IncidentDto> incidents = incidentService.getFilteredIncidents(
+                incidentFilterDto, pageable);
         return ResponseEntity.ok(incidents);
     }
 

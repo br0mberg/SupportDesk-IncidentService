@@ -3,7 +3,6 @@ package ru.brombin.incident_service.service.grpc;
 import image.ImageServiceGrpc.*;
 import image.ImageServiceOuterClass.*;
 import io.grpc.StatusRuntimeException;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;

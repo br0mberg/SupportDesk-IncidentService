@@ -1,12 +1,11 @@
 package ru.brombin.incident_service.service.kafka;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.internals.RecordHeader;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -20,17 +19,14 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 
-import static lombok.AccessLevel.PRIVATE;
-
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@FieldDefaults(level = PRIVATE, makeFinal = true)
 public class KafkaImageServiceImpl implements KafkaImageService {
 
-    KafkaSender<String, DeleteImageRequest> kafkaSender;
+    private final KafkaSender<String, DeleteImageRequest> kafkaSender;
 
-    @Value(staticConstructor = "${kafka.delete-image.topic}")
+    @Value("${kafka.delete-image.topic}")
     String deleteImageTopic;
 
     private List<Header> createHeaders(String jwtToken) {
