@@ -30,9 +30,6 @@ Thumbs.db
 *.swo
 *.bak
 
-# Файлы локальных настроек и учетных данных
-*.properties
-
 # Библиотеки, скачиваемые Maven или Gradle
 .mvn/
 .gradle/

@@ -13,7 +13,6 @@ import reactor.kafka.sender.KafkaSender;
 import reactor.kafka.sender.SenderRecord;
 import reactor.util.retry.Retry;
 import ru.brombin.incident_service.dto.DeleteImageRequest;
-import ru.brombin.incident_service.util.messages.KafkaLogMessages;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -44,8 +43,8 @@ public class KafkaImageServiceImpl implements KafkaImageService {
                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(1)))
                 .subscribeOn(Schedulers.boundedElastic())
                 .doOnError(e ->
-                        log.error(KafkaLogMessages.DELETE_IMAGE_REQUEST_FAILED.getFormatted(e.getMessage())))
+                        log.error("Failed to send delete image request: {}", e.getMessage()))
                 .subscribe(result ->
-                        log.info(KafkaLogMessages.DELETE_IMAGE_REQUEST_SUCCESS.getFormatted(result.recordMetadata().offset())));
+                        log.info("Delete image request sent successfully with offset: {}", result.recordMetadata().offset()));
     }
 }

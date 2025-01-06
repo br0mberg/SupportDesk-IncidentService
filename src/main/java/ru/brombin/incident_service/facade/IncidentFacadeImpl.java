@@ -18,7 +18,6 @@ import ru.brombin.incident_service.service.kafka.KafkaImageService;
 import ru.brombin.incident_service.service.IncidentService;
 import ru.brombin.incident_service.service.UserService;
 import ru.brombin.incident_service.util.exceptions.NotFoundException;
-import ru.brombin.incident_service.util.messages.IncidentLogMessages;
 
 import java.util.Collections;
 import java.util.List;
@@ -74,7 +73,7 @@ public class IncidentFacadeImpl implements IncidentFacade {
     public IncidentWithDetailsDto findIncidentWithDetails(Long incidentId) {
         Incident incident = incidentService.findById(incidentId);
         UserDto initiatorDto = userService.findById(incident.getInitiatorId())
-                .orElseThrow(() -> new NotFoundException("Initiator not found for Incident ID: " + incidentId));
+                .orElseThrow(() -> new NotFoundException("User", incident.getInitiatorId()));
 
         Optional<UserDto> analystDto = userService.findById(incident.getAnalystId());
 
@@ -91,7 +90,7 @@ public class IncidentFacadeImpl implements IncidentFacade {
     @Override
     @Transactional
     public IncidentDto updateAnalyst(Long incidentId, Long analystId) {
-        userService.findById(analystId).orElseThrow(() -> new NotFoundException("Analyst not found with ID: " + analystId));
+        userService.findById(analystId).orElseThrow(() -> new NotFoundException("User", analystId));
         return incidentService.updateAnalyst(incidentId, analystId);
     }
 

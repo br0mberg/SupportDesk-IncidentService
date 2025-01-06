@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 import ru.brombin.incident_service.dto.UserDto;
 import org.springframework.security.core.GrantedAuthority;
 import ru.brombin.incident_service.service.grpc.GrpcClientService;
-import ru.brombin.incident_service.util.messages.SecurityLogMessages;
-import ru.brombin.incident_service.util.messages.UserLogMessages;
 import user.UserServiceOuterClass.*;
 
 import java.util.Optional;
@@ -37,11 +35,11 @@ public class UserServiceImpl implements UserService {
             Jwt jwt = jwtAuthenticationToken.getToken();
             Long userId = Long.parseLong(jwt.getClaimAsString(userIdFieldName));
 
-            log.info(UserLogMessages.CURRENT_USER_ID_FETCHED.getFormatted(userId));
+            log.info("Current user with id: {} fetched from jwt token", userId);
             return userId;
         }
 
-        throw new SecurityException(SecurityLogMessages.NO_JWT_TOKEN_FOUND.getFormatted());
+        throw new SecurityException("No JWT token found in security context");
     }
 
     @Override
@@ -56,7 +54,7 @@ public class UserServiceImpl implements UserService {
                 userResponse.getLogin(), userResponse.getEmail(),
                 userResponse.getPhoneNumber(), userResponse.getWorkplaceLocation());
 
-        log.info(UserLogMessages.CURRENT_USER_ROLE_FETCHED.getFormatted(userDto.role()));
+        log.info("Current User role fetched: {}", userDto.role());
 
         return Optional.of(userDto);
     }
@@ -69,12 +67,12 @@ public class UserServiceImpl implements UserService {
                     .map(GrantedAuthority::getAuthority)
                     .filter(r -> r.startsWith("ROLE_"))
                     .findFirst()
-                    .orElseThrow(() -> new IllegalStateException(SecurityLogMessages.USER_ROLE_NOT_FOUND.getFormatted()));
+                    .orElseThrow(() -> new IllegalStateException("Roles for the current user not found"));
 
-            log.info(UserLogMessages.CURRENT_USER_ROLE_FETCHED.getFormatted(role));
+            log.info("Current User role fetched: {}", role);
             return role;
         }
 
-        throw new IllegalStateException(SecurityLogMessages.AUTHENTICATION_NOT_FOUND.getFormatted());
+        throw new IllegalStateException("Authentication in security context not found");
     }
 }

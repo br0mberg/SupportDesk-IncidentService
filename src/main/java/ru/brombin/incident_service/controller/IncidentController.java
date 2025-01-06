@@ -25,7 +25,7 @@ import java.util.List;
 @Slf4j
 @Validated
 @RestController
-@RequestMapping("/api/incidents")
+@RequestMapping("/v1/incidents")
 @RequiredArgsConstructor
 @FieldDefaults(level= AccessLevel.PRIVATE, makeFinal=true)
 public class IncidentController {

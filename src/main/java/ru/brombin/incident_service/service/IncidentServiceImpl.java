@@ -15,9 +15,6 @@ import ru.brombin.incident_service.entity.*;
 import ru.brombin.incident_service.mapper.IncidentMapper;
 import ru.brombin.incident_service.repository.IncidentRepository;
 import ru.brombin.incident_service.util.exceptions.NotFoundException;
-import ru.brombin.incident_service.util.messages.IncidentLogMessages;
-
-import java.lang.reflect.Field;
 
 import static lombok.AccessLevel.PRIVATE;
 
@@ -35,13 +32,17 @@ public class IncidentServiceImpl implements IncidentService{
     public Page<IncidentDto> getFilteredIncidents(IncidentFilterDto filterDto, Pageable pageable) {
         Specification<Incident> specification = specificationBuilder.build(filterDto);
         Page<Incident> incidents = incidentRepository.findAll(specification, pageable);
+
+        log.info("Filtered incidents retrieved successfully with filters: {} and page request: {}",
+                filterDto, pageable);
         return incidents.map(incidentMapper::toDto);
     }
 
     @Override
     public Incident findById(Long id) {
         Incident incident = incidentRepository.findById(id).orElseThrow(() ->
-                new NotFoundException(IncidentLogMessages.INCIDENT_NOT_FOUND.getFormatted(id)));
+                new NotFoundException("Incident", id));
+        log.info("Incicent with id: {} found successfully", id);
         return incident;
     }
 
@@ -51,18 +52,18 @@ public class IncidentServiceImpl implements IncidentService{
         incident.setInitiatorId(initiatorId);
 
         Incident savedIncident = incidentRepository.save(incident);
-        log.info(IncidentLogMessages.INCIDENT_CREATED.getFormatted(savedIncident.getId()));
+        log.info("Incident with ID: {} created successfully", savedIncident.getId());
         return savedIncident;
     }
 
     @Override
     public IncidentDto update(Long id, IncidentDto incidentDto) {
         Incident existingIncident = findById(id);
-
         incidentMapper.updateIncidentFromDto(incidentDto, existingIncident);
 
         Incident updatedIncident = incidentRepository.save(existingIncident);
-        log.info(IncidentLogMessages.INCIDENT_UPDATED.getFormatted(updatedIncident.getId()));
+
+        log.info("Incident with ID: {} updated successfully", id);
         return incidentMapper.toDto(updatedIncident);
     }
 
@@ -73,7 +74,7 @@ public class IncidentServiceImpl implements IncidentService{
 
         Incident updatedIncident = incidentRepository.save(existingIncident);
 
-        log.info(IncidentLogMessages.INCIDENT_STATUS_UPDATED.getFormatted(id, status));
+        log.info("Incident status updated for ID {}, new status={}", id, status);
         return incidentMapper.toDto(updatedIncident);
     }
 
@@ -84,7 +85,7 @@ public class IncidentServiceImpl implements IncidentService{
 
         Incident updatedIncident = incidentRepository.save(existingIncident);
 
-        log.info(IncidentLogMessages.INCIDENT_ANALYST_UPDATED.getFormatted(id, analystId));
+        log.info("Incident analyst updated for ID {}, new analyst ID={}", id, analystId);
         return incidentMapper.toDto(updatedIncident);
     }
 
@@ -95,7 +96,7 @@ public class IncidentServiceImpl implements IncidentService{
 
         Incident updatedIncident = incidentRepository.save(existingIncident);
 
-        log.info(IncidentLogMessages.INCIDENT_PRIORITY_UPDATED.getFormatted(id, priority));
+        log.info("Incident priority updated for ID {}, new priority={}", id, priority);
         return incidentMapper.toDto(updatedIncident);
     }
 
@@ -106,7 +107,7 @@ public class IncidentServiceImpl implements IncidentService{
 
         Incident updatedIncident = incidentRepository.save(existingIncident);
 
-        log.info(IncidentLogMessages.INCIDENT_RESPONSIBLE_SERVICE_UPDATED.getFormatted(id, service));
+        log.info("Incident responsible service updated for ID {}, new service={}", id, service);
         return incidentMapper.toDto(updatedIncident);
     }
 
@@ -117,7 +118,7 @@ public class IncidentServiceImpl implements IncidentService{
 
         Incident updatedIncident = incidentRepository.save(existingIncident);
 
-        log.info(IncidentLogMessages.INCIDENT_CATEGORY_UPDATED.getFormatted(incidentId, category));
+        log.info( "Incident category updated for ID {}, new category={}", updatedIncident.getId(), category);
         return incidentMapper.toDto(updatedIncident);
     }
 
@@ -125,9 +126,9 @@ public class IncidentServiceImpl implements IncidentService{
     public void delete(Long id) {
         try {
             incidentRepository.deleteById(id);
-            log.info(IncidentLogMessages.INCIDENT_DELETED.getFormatted(id));
+            log.info("Incident with id: {} deleted successfully", id);
         } catch (EmptyResultDataAccessException e) {
-            throw new NotFoundException(IncidentLogMessages.INCIDENT_NOT_FOUND.getFormatted(id));
+            throw new NotFoundException("Incident", id);
         }
     }
 }
