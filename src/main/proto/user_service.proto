@@ -14,10 +14,11 @@ message GetUserRequest {
 }
 
 message UserResponse {
-  string role = 1;
-  string fullName = 2;
-  string login = 3;
-  string email = 4;
-  string phoneNumber = 5;
-  string workplaceLocation = 6;
+  int64 id = 1;
+  string role = 2;
+  string fullName = 3;
+  string login = 4;
+  string email = 5;
+  string phoneNumber = 6;
+  string workplaceLocation = 7;
 }

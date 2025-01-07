@@ -205,6 +205,11 @@
 			<version>${hibernate-jpamodelgen.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-test</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<extensions>
