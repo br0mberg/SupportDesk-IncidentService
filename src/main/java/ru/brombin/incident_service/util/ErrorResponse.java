@@ -12,5 +12,5 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level= AccessLevel.PRIVATE)
 public class ErrorResponse {
     String message;
-    long timestamp;
+    Long timestamp;
 }

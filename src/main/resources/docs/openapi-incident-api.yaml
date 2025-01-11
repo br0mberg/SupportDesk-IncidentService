@@ -1,0 +1,708 @@
+openapi: 3.0.3
+info:
+  title: Incident Management API
+  description: API for managing incidents in the system.
+  version: 1.0.0
+servers:
+  - url: https://localhost:8081/v1
+    description: Local server
+security:
+  - bearerAuth: []
+paths:
+  /incidents:
+    get:
+      summary: Get all incidents
+      description: Retrieves a paginated list of all incidents based on filters. 
+        Accessible to ADMIN and ANALYST roles.
+      operationId: getAllIncidents
+      parameters:
+        - name: incidentFilterDto
+          in: query
+          schema:
+            $ref: '#/components/schemas/IncidentFilterDto'
+          description: Filters to apply to the incidents.
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Page number for pagination.
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+          description: Number of incidents per page.
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: Sorting criteria in the format `property,(asc|desc)`.
+      responses:
+        '200':
+          description: Paginated list of incidents retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IncidentDto'
+        '400':
+          description: Validation error or image processing error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                validationError:
+                  summary: Validation Error
+                  value:
+                    message:
+                      Validation error:
+                        name: Name should not be empty, Name should be between 2 and 255 characters
+                        description: Name should not be empty, Description cannot exceed 500 characters
+                        analystId: Analyst ID must be positive
+                    timestamp: 1673456789012
+                imageProcessingError:
+                  summary: Image Processing Error
+                  value:
+                    message: Image processing error
+                    timestamp: 1673456789012
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Create a new incidentDto
+      description: Create a new incidentDto with optional image files.
+        Accessible to ADMIN, ANALYST, USER roles.
+      operationId: createIncident
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                incidentDto:
+                  $ref: '#/components/schemas/IncidentDto'
+                image_files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Incident successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentDto'
+        '400':
+          description: Validation error or image processing error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                validationError:
+                  summary: Validation Error
+                  value:
+                    message:
+                      Validation error:
+                        name: Name should not be empty, Name should be between 2 and 255 characters
+                        description: Name should not be empty, Description cannot exceed 500 characters
+                        analystId: Analyst ID must be positive
+                    timestamp: 1673456789012
+                imageProcessingError:
+                  summary: Image Processing Error
+                  value:
+                    message: Image processing error
+                    timestamp: 1673456789012
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+            $ref: '#/components/responses/InternalServerError'
+
+  /incidents/{incidentId}:
+    get:
+      summary: Get incidentDto details
+      description: Retrieves detailed information about an incidentDto by its ID. 
+        Accessible to ADMIN and ANALYST roles.
+      operationId: getIncidentDetails
+      parameters:
+        - name: incidentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Unique ID of the incident.
+      responses:
+        '200':
+          description: Incident details retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentWithDetailsDto'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      summary: Update an incidentDto
+      description: Update an existing incidentDto by ID. 
+        Accessible to ADMIN and ANALYST roles. 
+        User role can only update the Name and description.
+      operationId: updateIncident
+      parameters:
+        - name: incidentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            description: Unique identifier of the incident.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentDto'
+      responses:
+        '200':
+          description: Incident successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentDto'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+            $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: Delete an incidentDto
+      description: Deletes an incidentDto by its ID. 
+        Only accessible to ADMIN role.
+      operationId: deleteIncident
+      parameters:
+        - name: incidentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Unique ID of the incident to delete.
+      responses:
+        '204':
+          description: Incident deleted successfully.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/incidents/{incidentId}/status:
+    patch:
+      summary: Assign status to an incidentDto
+      description: Updates the status of an incidentDto. 
+        Accessible to ADMIN and ANALYST roles.
+      operationId: assignStatus
+      parameters:
+        - name: incidentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Unique ID of the incident.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentStatus'
+      responses:
+        '200':
+          description: Incident status updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentDto'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/incidents/{incidentId}/analyst:
+    patch:
+      summary: Assign analyst to an incidentDto
+      description: Updates the analyst responsible for an incidentDto. 
+        Accessible to ADMIN and ANALYST roles.
+      operationId: assignAnalyst
+      parameters:
+        - name: incidentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Unique ID of the incident.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: integer
+              format: int64
+      responses:
+        '200':
+          description: Incident analyst updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentDto'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/incidents/{incidentId}/priority:
+    patch:
+      summary: Assign priority to an incidentDto
+      description: Updates the priority of an incidentDto. 
+        Accessible to ADMIN and ANALYST roles.
+      operationId: assignPriority
+      parameters:
+        - name: incidentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Unique ID of the incident.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentPriority'
+      responses:
+        '200':
+          description: Incident priority updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentDto'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/incidents/{incidentId}/category:
+    patch:
+      summary: Assign category to an incidentDto
+      description: Updates the category of an incidentDto. 
+        Accessible to ADMIN and ANALYST roles.
+      operationId: assignCategory
+      parameters:
+        - name: incidentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Unique ID of the incident.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentCategory'
+      responses:
+        '200':
+          description: Incident category updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentDto'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/incidents/{incidentId}/responsible-service:
+    patch:
+      summary: Assign responsible service to an incidentDto
+      description: Updates the responsible service of an incidentDto. 
+        Accessible to ADMIN and ANALYST roles.
+      operationId: assignResponsibleService
+      parameters:
+        - name: incidentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Unique ID of the incident.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponsibleService'
+      responses:
+        '200':
+          description: Incident responsible service updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentDto'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  responses:
+    UnauthorizedError:
+      description: Unauthorized access - invalid or missing JWT token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: Unauthorized - token is missing or invalid
+            timestamp: 1673456789012
+    NotFoundError:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: Resource not found
+            timestamp: 1673456789012
+    ValidationError:
+      description: Validation error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            validationError:
+              summary: Validation Error
+              value:
+                message:
+                  Validation error:
+                timestamp: 1673456789012
+    InternalServerError:
+      description: Unexpected server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: An unexpected error occurred
+            timestamp: 1673456789012
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+      required:
+        - message
+        - timestamp
+      example:
+        message: Resource not found
+        timestamp: 1673456789012
+
+    IncidentDto:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Short name of the incident
+          minLength: 2
+          maxLength: 255
+          example: "Network outage"
+        description:
+          type: string
+          description: Detailed description of the incidentDto
+          minLength: 2
+          maxLength: 500
+          example: "The network is down in several offices due to a hardware failure."
+        dateClosed:
+          type: string
+          format: date-time
+          description: The time when the incident was closed
+          example: "2025-01-07T15:30:00Z"
+        analystId:
+          type: integer
+          description: ID of the responsible analyst
+          minimum: 1
+          example: 42
+        status:
+          $ref: '#/components/schemas/IncidentStatus'
+        priority:
+          $ref: '#/components/schemas/IncidentPriority'
+        category:
+          $ref: '#/components/schemas/IncidentCategory'
+        responsibleService:
+          $ref: '#/components/schemas/ResponsibleService'
+      required:
+        - name
+        - description
+        - dateClosed
+        - analystId
+        - status
+        - priority
+        - category
+        - responsibleService
+      example:
+        name: "Network outage"
+        description: "The network is down in several offices due to a hardware failure."
+        dateClosed: "2025-01-07T15:30:00Z"
+        analystId: 42
+        status: "OPEN"
+        priority: "HIGH"
+        category: "SOFTWARE"
+        responsibleService: "DEVOPS_SERVICE"
+
+    IncidentStatus:
+      type: string
+      enum:
+        - OPEN
+        - CLOSED
+        - WAITING_FOR_INFORMATION
+        - INSUFFICIENT_INFORMATION
+      description: Represents the current status of an incidentDto.
+      example: "OPEN"
+
+    IncidentCategory:
+      type: string
+      enum:
+        - SOFTWARE
+        - HARDWARE_PROBLEM
+        - WORKPLACE_CONNECTION
+      description: Represents the category of the incidentDto.
+      example: "SOFTWARE"
+
+    IncidentPriority:
+      type: string
+      enum:
+        - LOW
+        - MEDIUM
+        - HIGH
+      description: Represents the priority level of the incidentDto.
+      example: "HIGH"
+
+    ResponsibleService:
+      type: string
+      enum:
+        - HARDWARE_SERVICE
+        - ADMIN_SERVICE
+        - PRINT_SERVICE
+        - DEVOPS_SERVICE
+        - DEVELOPMENT_SERVICE
+        - HOUSEKEEPING_SERVICE
+        - PROCUREMENT_SERVICE
+        - IT_SUPPORT
+        - WAREHOUSE_SERVICE
+      description: Represents the service responsible for handling the incidentDto.
+      example: "IT_SUPPORT"
+
+    IncidentFilterDto:
+      type: object
+      description: Filters for retrieving a list of incidents.
+      properties:
+        status:
+          $ref: '#/components/schemas/IncidentStatus'
+        category:
+          $ref: '#/components/schemas/IncidentCategory'
+        priority:
+          $ref: '#/components/schemas/IncidentPriority'
+        responsibleService:
+          $ref: '#/components/schemas/ResponsibleService'
+        fromDate:
+          type: string
+          format: date-time
+          description: The start date for filtering incidents.
+        toDate:
+          type: string
+          format: date-time
+          description: The end date for filtering incidents.
+      example:
+        status: "OPEN"
+        category: "SOFTWARE"
+        priority: "HIGH"
+        responsibleService: "IT_SUPPORT"
+        fromDate: "2025-01-01T00:00:00"
+        toDate: "2025-01-31T23:59:59"
+
+    IncidentWithDetailsDto:
+      type: object
+      required:
+        - incidentDto
+      properties:
+        incidentDto:
+          $ref: '#/components/schemas/IncidentDto'
+        imageDtos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageDto'
+          description: List of images associated with the incidentDto.
+        analystDto:
+          $ref: '#/components/schemas/UserDto'
+        initiatorDto:
+          $ref: '#/components/schemas/UserDto'
+      description: Contains detailed information about an incidentDto, including related images and user details.
+      example:
+        incidentDto:
+          name: "Network outage"
+          description: "The network is down in several offices due to a hardware failure."
+          dateClosed: "2025-01-07T15:30:00Z"
+          analystId: 42
+          status: "OPEN"
+          priority: "HIGH"
+          category: "SOFTWARE"
+          responsibleService: "DEVOPS_SERVICE"
+        imageDtos:
+          - id: 1
+            incidentId: 1
+            fileName: "incident-123-1.png"
+            size: 1024
+            type: "image/png"
+            content: "base64encodedstring1"
+          - id: 2
+            incidentId: 1
+            fileName: "incident-123-2.png"
+            size: 2048
+            type: "image/jpeg"
+            content: "base64encodedstring2"
+        analystDto:
+          role: "ANALYST"
+          fullName: "Jane Doe"
+          login: "jane.doe"
+          email: "jane.doe@example.com"
+          phoneNumber: "+1234567890"
+          workplaceLocation: "Head Office, Floor 3"
+        initiatorDto:
+          role: "USER"
+          fullName: "John Smith"
+          login: "john.smith"
+          email: "john.smith@example.com"
+          phoneNumber: "+0987654321"
+          workplaceLocation: "Branch Office, Floor 1"
+
+    ImageDto:
+      type: object
+      required:
+        - incidentId
+        - fileName
+        - size
+        - type
+        - content
+      properties:
+        incidentId:
+          type: integer
+          format: int64
+          description: The ID of the related incident.
+        fileName:
+          type: string
+          description: The name of the uploaded file.
+          minLength: 1
+        size:
+          type: integer
+          format: int64
+          description: The size of the file in bytes.
+          minimum: 1
+        type:
+          type: string
+          description: The MIME type of the file.
+          minLength: 1
+        content:
+          type: string
+          format: byte
+          description: The binary content of the file in Base64-encoded format.
+      description: Represents an image associated with an incident.
+      example:
+        incidentId: 123
+        fileName: "error_screenshot.png"
+        size: 204800
+        type: "image/png"
+        content: "VGhpcyBpcyBhIHNhbXBsZSBjb250ZW50IG9mIHRoZSBmaWxlLg=="
+
+    UserDto:
+      type: object
+      required:
+        - role
+        - fullName
+        - login
+        - email
+        - phoneNumber
+        - workplaceLocation
+      properties:
+        role:
+          type: string
+          description: The role of the user.
+          minLength: 1
+        fullName:
+          type: string
+          description: The full name of the user.
+          minLength: 1
+        login:
+          type: string
+          description: The login or username of the user.
+          minLength: 1
+        email:
+          type: string
+          format: email
+          description: The email address of the user.
+        phoneNumber:
+          type: string
+          description: The phone number of the user.
+          minLength: 5
+          maxLength: 15
+        workplaceLocation:
+          type: string
+          description: The workplace location of the user.
+          minLength: 1
+      description: Represents the details of a user in the system.
+      example:
+        role: "ADMIN"
+        fullName: "Jane Doe"
+        login: "janedoe"
+        email: "jane.doe@example.com"
+        phoneNumber: "+1234567890"
+        workplaceLocation: "HQ - Floor 3, Room 12"

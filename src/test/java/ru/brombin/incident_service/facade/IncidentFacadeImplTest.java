@@ -136,7 +136,7 @@ public class IncidentFacadeImplTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals("Test Incident", result.incident().getName());
+        assertEquals("Test Incident", result.incidentDto().getName());
         assertEquals(1, result.imageDtos().size());
         assertEquals("User1", result.initiatorDto().fullName());
         assertEquals("User2", result.analystDto().fullName());

@@ -19,7 +19,6 @@ import ru.brombin.incident_service.entity.*;
 import ru.brombin.incident_service.facade.IncidentFacade;
 import ru.brombin.incident_service.service.IncidentService;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -31,12 +30,31 @@ import java.util.List;
 public class IncidentController {
     IncidentFacade incidentFacade;
     IncidentService incidentService;
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
+    public ResponseEntity<Page<IncidentDto>> getAllIncidents(
+            @ModelAttribute IncidentFilterDto incidentFilterDto,
+            Pageable pageable) {
+
+        Page<IncidentDto> incidents = incidentService.getFilteredIncidents(
+                incidentFilterDto, pageable);
+        return ResponseEntity.ok(incidents);
+    }
+
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST', 'USER')")
     public ResponseEntity<IncidentDto> createIncident(@ModelAttribute IncidentDto incidentDto,
                                                    @RequestParam(value = "image_files", required = false) List<MultipartFile> images) {
         IncidentDto createdIncident = incidentFacade.createIncident(incidentDto, images);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdIncident);
+    }
+
+    @GetMapping("/{incidentId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
+    public ResponseEntity<IncidentWithDetailsDto> getIncidentDetails(@PathVariable Long incidentId) {
+        IncidentWithDetailsDto details = incidentFacade.findIncidentWithDetails(incidentId);
+        return ResponseEntity.ok(details);
     }
 
     @PutMapping("/{incidentId}")
@@ -51,24 +69,6 @@ public class IncidentController {
     public ResponseEntity<Void> deleteIncident(@PathVariable Long incidentId) {
         incidentFacade.delete(incidentId);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{incidentId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
-    public ResponseEntity<IncidentWithDetailsDto> getIncidentDetails(@PathVariable Long incidentId) {
-        IncidentWithDetailsDto details = incidentFacade.findIncidentWithDetails(incidentId);
-        return ResponseEntity.ok(details);
-    }
-
-    @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'ANALYST')")
-    public ResponseEntity<Page<IncidentDto>> getAllIncidents(
-            @ModelAttribute IncidentFilterDto incidentFilterDto,
-            Pageable pageable) {
-
-        Page<IncidentDto> incidents = incidentService.getFilteredIncidents(
-                incidentFilterDto, pageable);
-        return ResponseEntity.ok(incidents);
     }
 
     @PatchMapping("/{incidentId}/status")

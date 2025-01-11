@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: createIncident-incident-table
+      id: createIncident-incidentDto-table
       author: ABrombin
       preConditions:
         - onFail: MARK_RAN

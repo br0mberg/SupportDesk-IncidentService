@@ -80,7 +80,7 @@ public class IncidentFacadeImpl implements IncidentFacade {
         List<ImageDto> imagesDto = imageMapper.toImageDtoList(grpcClientService.findImagesByIncidentId(incidentId));
 
         return incidentMapper.toIncidentWithDetailsDto(
-                incident,
+                incidentMapper.toDto(incident),
                 imagesDto,
                 analystDto.orElse(null),
                 initiatorDto

@@ -12,12 +12,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record IncidentDto(
-        @NotBlank
-        @Size(max = 255, message = "Name should be between 2 and 255 characters")
+        @NotBlank(message = "Name should not be empty")
+        @Size(min=2, max = 255, message = "Name should be between 2 and 255 characters")
         String name,
 
         @NotBlank(message = "Description should not be empty")
-        @Size(max = 500, message = "Description cannot exceed 500 characters")
+        @Size(min = 2, max = 500, message = "Description cannot exceed 500 characters")
         String description,
 
         LocalDateTime dateClosed,

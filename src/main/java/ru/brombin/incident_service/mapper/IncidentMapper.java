@@ -30,7 +30,7 @@ public interface IncidentMapper {
     @Mapping(target="status", expression = "java(getStatus(dto))")
     void updateIncidentFromDto(IncidentDto dto, @MappingTarget Incident entity);
 
-    IncidentWithDetailsDto toIncidentWithDetailsDto(Incident incident,
+    IncidentWithDetailsDto toIncidentWithDetailsDto(IncidentDto incidentDto,
                                                     List<ImageDto> imageDtos,
                                                     UserDto analystDto,
                                                     UserDto initiatorDto);
