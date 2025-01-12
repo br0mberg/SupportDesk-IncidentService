@@ -3,9 +3,13 @@ package ru.brombin.incident_service.service;
 import image.ImageServiceGrpc.*;
 import image.ImageServiceOuterClass.*;
 import io.grpc.StatusRuntimeException;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import ru.brombin.incident_service.dto.ImageDto;
 import ru.brombin.incident_service.entity.Incident;
 import ru.brombin.incident_service.mapper.ImageRequestMapper;
@@ -21,18 +25,24 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class GrpcClientServiceImplTest {
+@FieldDefaults(level= AccessLevel.PRIVATE)
+class GrpcClientServiceImplTest {
     @Mock
-    private ImageServiceBlockingStub imageServiceStub;
+    ImageServiceBlockingStub imageServiceStub;
 
     @Mock
-    private UserServiceBlockingStub userServiceStub;
+    UserServiceBlockingStub userServiceStub;
 
     @Mock
-    private ImageRequestMapper imageRequestMapper;
+    ImageRequestMapper imageRequestMapper;
 
     @InjectMocks
-    private GrpcClientServiceImpl grpcClientService;
+    GrpcClientServiceImpl grpcClientService;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     void uploadImages_shouldUploadAllImagesSuccessfully() {
@@ -67,11 +77,14 @@ public class GrpcClientServiceImplTest {
         // Arrange
         Incident incident = new Incident();
         incident.setId(123L);
-        List<ImageDto> imageDtoList = List.of(new ImageDto(incident.getId(), "image1.jpg", 1024L, "image/jpeg", new byte[]{1, 2, 3}));
 
+        List<ImageDto> imageDtoList = List.of(
+                new ImageDto(incident.getId(), "image1.jpg", 1024L, "image/jpeg", new byte[]{1, 2, 3})
+        );
 
         SaveImageRequest mockRequest = SaveImageRequest.newBuilder().build();
 
+        // Настройка моков
         when(imageRequestMapper.toSaveImageRequest(any(ImageDto.class))).thenReturn(mockRequest);
         when(imageServiceStub.withInterceptors(any())).thenReturn(imageServiceStub);
         when(imageServiceStub.saveImage(any(SaveImageRequest.class)))

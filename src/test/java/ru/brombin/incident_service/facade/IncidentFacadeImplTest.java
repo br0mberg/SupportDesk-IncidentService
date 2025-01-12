@@ -1,14 +1,18 @@
 package ru.brombin.incident_service.facade;
 
+import image.ImageServiceOuterClass.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
 import ru.brombin.incident_service.dto.*;
 import ru.brombin.incident_service.entity.*;
 import ru.brombin.incident_service.mapper.ImageMapper;
 import ru.brombin.incident_service.mapper.IncidentMapper;
 import ru.brombin.incident_service.repository.IncidentRepository;
+import ru.brombin.incident_service.security.JwtTokenProvider;
 import ru.brombin.incident_service.service.IncidentServiceImpl;
 import ru.brombin.incident_service.service.UserServiceImpl;
 import ru.brombin.incident_service.service.grpc.GrpcClientServiceImpl;
@@ -22,9 +26,12 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class IncidentFacadeImplTest {
+@ExtendWith(MockitoExtension.class)
+class IncidentFacadeImplTest {
     @Mock
     UserServiceImpl userService;
+    @Mock
+    JwtTokenProvider jwtTokenProvider;
     @Mock
     IncidentServiceImpl incidentService;
     @Mock
@@ -55,13 +62,23 @@ public class IncidentFacadeImplTest {
         List<MultipartFile> images = List.of(image1, image2);
 
         Incident incident = new Incident();
+        incident.setId(1L);
+        incident.setName("Test Incident"); // Убедитесь, что имя установлено
         when(userService.getCurrentUserId()).thenReturn(1L);
         when(incidentService.save(1L, incidentDto)).thenReturn(incident);
 
         ImageDto imageDto1 = new ImageDto(1L, "image1.jpg", 1024, "image/jpeg", new byte[]{1});
         ImageDto imageDto2 = new ImageDto(1L, "image2.jpg", 2048, "image/png", new byte[]{2});
-        when(imageMapper.toImageDto(image1, 1L)).thenReturn(imageDto1);
-        when(imageMapper.toImageDto(image2, 1L)).thenReturn(imageDto2);
+        when(imageMapper.toImageDto(image1, incident.getId())).thenReturn(imageDto1);
+        when(imageMapper.toImageDto(image2, incident.getId())).thenReturn(imageDto2);
+
+        IncidentDto mappedIncidentDto = new IncidentDto(
+                "Test Incident", "Test Description",
+                null, null,
+                IncidentStatus.OPEN, IncidentPriority.HIGH,
+                IncidentCategory.SOFTWARE, ResponsibleService.IT_SUPPORT
+        );
+        when(incidentMapper.toDto(incident)).thenReturn(mappedIncidentDto);
 
         // Act
         IncidentDto result = incidentFacade.createIncident(incidentDto, images);
@@ -69,6 +86,7 @@ public class IncidentFacadeImplTest {
         // Assert
         verify(grpcClientService).uploadImages(List.of(imageDto1, imageDto2), incident);
         assertNotNull(result);
+        assertEquals("Test Incident", result.name());
     }
 
     @Test
@@ -84,6 +102,7 @@ public class IncidentFacadeImplTest {
         Incident incident = new Incident();
         when(userService.getCurrentUserId()).thenReturn(1L);
         when(incidentService.save(1L, incidentDto)).thenReturn(incident);
+        when(incidentMapper.toDto(incident)).thenReturn(incidentDto);
 
         // Act
         IncidentDto result = incidentFacade.createIncident(incidentDto, Collections.emptyList());
@@ -120,7 +139,7 @@ public class IncidentFacadeImplTest {
         when(userService.findById(1L)).thenReturn(Optional.of(initiatorDto));
         when(userService.findById(2L)).thenReturn(Optional.of(analystDto));
 
-        image.ImageServiceOuterClass.ImageData imageData = image.ImageServiceOuterClass.ImageData.newBuilder()
+        ImageData imageData = ImageData.newBuilder()
                 .setImageId(1L)
                 .setFileName("image.jpg")
                 .setSize(1024)
@@ -131,12 +150,34 @@ public class IncidentFacadeImplTest {
         when(imageMapper.toImageDtoList(List.of(imageData)))
                 .thenReturn(List.of(new ImageDto(1L, "image.jpg", 1024, "image/jpeg", new byte[]{1})));
 
+        when(incidentMapper.toDto(incident)).thenReturn(new IncidentDto("Test Incident", "Test Incident",
+                null, 2L, IncidentStatus.OPEN, IncidentPriority.HIGH, IncidentCategory.SOFTWARE, ResponsibleService.IT_SUPPORT));
+        when(incidentMapper.toIncidentWithDetailsDto(
+                any(IncidentDto.class),
+                anyList(),
+                any(),
+                any(UserDto.class)
+        )).thenAnswer(invocation -> {
+            IncidentDto dto = invocation.getArgument(0);
+            List<ImageDto> images = invocation.getArgument(1);
+            UserDto analyst = invocation.getArgument(2);
+            UserDto initiator = invocation.getArgument(3);
+            return new IncidentWithDetailsDto(dto, images, analyst, initiator);
+        });
+
         // Act
         IncidentWithDetailsDto result = incidentFacade.findIncidentWithDetails(1L);
 
-        // Assert
+        // Assert intermediate results
+        assertNotNull(incidentService.findById(1L), "IncidentService returned null");
+        assertNotNull(userService.findById(1L).orElse(null), "Initiator UserDto is null");
+        assertNotNull(userService.findById(2L).orElse(null), "Analyst UserDto is null");
+        assertNotNull(grpcClientService.findImagesByIncidentId(1L), "GrpcClientService returned null images");
+        assertNotNull(imageMapper.toImageDtoList(List.of(imageData)), "ImageMapper returned null");
+
+        // Assert final result
         assertNotNull(result);
-        assertEquals("Test Incident", result.incidentDto().getName());
+        assertEquals("Test Incident", result.incidentDto().name());
         assertEquals(1, result.imageDtos().size());
         assertEquals("User1", result.initiatorDto().fullName());
         assertEquals("User2", result.analystDto().fullName());
@@ -260,6 +301,7 @@ public class IncidentFacadeImplTest {
         // Arrange
         Long incidentId = 1L;
         when(incidentService.findById(incidentId)).thenReturn(new Incident());
+        when(jwtTokenProvider.extractJwtTokenValue()).thenReturn("mockedToken");
 
         // Act
         incidentFacade.delete(incidentId);

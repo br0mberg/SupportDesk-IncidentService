@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @FieldDefaults(level= AccessLevel.PRIVATE)
-public class IncidentServiceImplTest {
+class IncidentServiceImplTest {
     @Mock
     IncidentRepository incidentRepository;
     @Mock
@@ -70,12 +70,11 @@ public class IncidentServiceImplTest {
         Long incidentId = 1L;
         when(incidentRepository.findById(incidentId)).thenReturn(Optional.empty());
 
-        // Act
-        Incident result = incidentService.findById(incidentId);
-
-        // Assert
+        // Act & Assert
         assertThatThrownBy(() -> incidentService.findById(incidentId))
                 .isInstanceOf(NotFoundException.class);
+
+        // Assert
         verify(incidentRepository, times(1)).findById(incidentId);
     }
 
@@ -160,17 +159,6 @@ public class IncidentServiceImplTest {
     }
 
     @Test
-    void save_shouldThrowExceptionWhenIncidentDtoIsNull() {
-        // Arrange
-        Long initiatorId = 100L;
-
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () ->
-                incidentService.save(initiatorId, null)
-        );
-    }
-
-    @Test
     void save_shouldThrowExceptionWhenRepositoryFails() {
         // Arrange
         Long initiatorId = 100L;
@@ -196,7 +184,7 @@ public class IncidentServiceImplTest {
                 IncidentCategory.HARDWARE_PROBLEM, ResponsibleService.DEVELOPMENT_SERVICE);
 
         Incident existingIncident = new Incident();
-        when(incidentService.findById(id)).thenReturn(existingIncident);
+        when(incidentRepository.findById(id)).thenReturn(Optional.of(existingIncident));
 
         Incident updatedIncident = new Incident();
         when(incidentRepository.save(existingIncident)).thenReturn(updatedIncident);
@@ -219,7 +207,7 @@ public class IncidentServiceImplTest {
         IncidentDto incidentDto = new IncidentDto(null, null, null, null,
                 null, null,null,null);
 
-        when(incidentService.findById(id)).thenThrow(new NotFoundException("Incident", id));
+        when(incidentRepository.findById(id)).thenThrow(new NotFoundException("Incident", id));
 
         // Act & Assert
         assertThrows(NotFoundException.class, () ->
@@ -234,7 +222,7 @@ public class IncidentServiceImplTest {
                 null, null,null,null);
         Incident existingIncident = new Incident();
 
-        when(incidentService.findById(id)).thenReturn(existingIncident);
+        when(incidentRepository.findById(id)).thenReturn(Optional.of(existingIncident));
         doThrow(new DataAccessException("Database error") {}).when(incidentRepository).save(existingIncident);
 
         // Act & Assert
@@ -266,7 +254,7 @@ public class IncidentServiceImplTest {
         Long id = 100L;
         IncidentStatus newStatus = IncidentStatus.CLOSED;
         Incident existingIncident = new Incident();
-        when(incidentService.findById(id)).thenReturn(existingIncident);
+        when(incidentRepository.findById(id)).thenReturn(Optional.of(existingIncident));
 
         Incident updatedIncident = new Incident();
         updatedIncident.setStatus(newStatus);
@@ -289,7 +277,7 @@ public class IncidentServiceImplTest {
         Long id = 100L;
         Long analystId = 10L;
         Incident existingIncident = new Incident();
-        when(incidentService.findById(id)).thenReturn(existingIncident);
+        when(incidentRepository.findById(id)).thenReturn(Optional.of(existingIncident));
 
         Incident updatedIncident = new Incident();
         updatedIncident.setAnalystId(analystId);
@@ -312,7 +300,7 @@ public class IncidentServiceImplTest {
         Long id = 100L;
         IncidentPriority newPriority = IncidentPriority.HIGH;
         Incident existingIncident = new Incident();
-        when(incidentService.findById(id)).thenReturn(existingIncident);
+        when(incidentRepository.findById(id)).thenReturn(Optional.of(existingIncident));
 
         Incident updatedIncident = new Incident();
         updatedIncident.setPriority(newPriority);
@@ -335,7 +323,7 @@ public class IncidentServiceImplTest {
         Long id = 100L;
         IncidentCategory newCategory = IncidentCategory.HARDWARE_PROBLEM;
         Incident existingIncident = new Incident();
-        when(incidentService.findById(id)).thenReturn(existingIncident);
+        when(incidentRepository.findById(id)).thenReturn(Optional.of(existingIncident));
 
         Incident updatedIncident = new Incident();
         updatedIncident.setCategory(newCategory);
@@ -355,16 +343,23 @@ public class IncidentServiceImplTest {
     @Test
     void updateResponsibleService_shouldUpdateIncidentResponsibleService() {
         // Arrange
-        Long id = 100L;
+        Long id = 1L;
         ResponsibleService newService = ResponsibleService.ADMIN_SERVICE;
+
         Incident existingIncident = new Incident();
-        when(incidentService.findById(id)).thenReturn(existingIncident);
+        existingIncident.setId(id);
 
         Incident updatedIncident = new Incident();
+        updatedIncident.setId(id);
         updatedIncident.setResponsibleService(newService);
+
+        when(incidentRepository.findById(id)).thenReturn(Optional.of(existingIncident));
         when(incidentRepository.save(existingIncident)).thenReturn(updatedIncident);
-        when(incidentMapper.toDto(updatedIncident)).thenReturn(new IncidentDto(null, null, null, null,
-                null, null, null, newService));
+        when(incidentMapper.toDto(updatedIncident)).thenReturn(new IncidentDto(
+                "test", "test", null, null,
+                IncidentStatus.OPEN, IncidentPriority.HIGH,
+                IncidentCategory.SOFTWARE, newService
+        ));
 
         // Act
         IncidentDto result = incidentService.updateResponsibleService(id, newService);

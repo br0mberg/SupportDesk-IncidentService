@@ -60,3 +60,24 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    networks:
+      - incident-service-network
+
+  incident-service:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/incident_service
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 9320
+    ports:
+      - "8081:8081"
+    networks:
+      - incident-service-network
+
+networks:
+  incident-service-network:
+    driver: bridge

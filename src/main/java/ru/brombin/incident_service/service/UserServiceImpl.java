@@ -20,10 +20,9 @@ import static lombok.AccessLevel.PRIVATE;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@FieldDefaults(level=PRIVATE, makeFinal = true)
 public class UserServiceImpl implements UserService {
 
-    GrpcClientService grpcClientService;
+    private final GrpcClientService grpcClientService;
 
     @Value("${jwt.token.user-id.field-name}")
     String userIdFieldName;
