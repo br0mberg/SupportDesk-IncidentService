@@ -16,13 +16,17 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface IncidentMapper {
 
+    @Mapping(target = "initiatorId", ignore = true)
+    @Mapping(target = "id", ignore = true)
     @Mapping(target="dateCreate", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target="status", expression = "java(getStatus(dto))")
     Incident toEntity(IncidentDto dto);
 
     IncidentDto toDto(Incident incident);
 
-    @Mapping(target="dateCreate", ignore = true)
+    @Mapping(target = "initiatorId", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "dateCreate", ignore = true)
     @Mapping(target="status", expression = "java(getStatus(dto))")
     void updateIncidentFromDto(IncidentDto dto, @MappingTarget Incident entity);
 
