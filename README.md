@@ -48,7 +48,7 @@ cd SupportDesk-IncidentService
 
 #### 2. Configure your application.properties
 Make sure to set up the following properties in your application.properties 
-file located in src/main/resources/:
+file located in src/main/resources/.
 
 ### 3. Set up Docker Compose
 Use the following docker-compose.yml to configure and start your containers.
