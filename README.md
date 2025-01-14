@@ -29,7 +29,7 @@ The Incident Service is a key component of the support automation system, design
 ## Getting Started
 
 ### Requirements
-- Docker and Docker Compose installed.
+- Docker installed.
 - Java Development Kit (JDK) 21 or higher.
 - PostgreSQL database.
 - Kafka and Kafka UI for message management.
