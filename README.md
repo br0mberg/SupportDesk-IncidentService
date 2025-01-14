@@ -42,8 +42,8 @@ The Incident Service is a key component of the support automation system, design
 Clone this repository to your local machine:
 
 ```bash
-git clone https://github.com/br0mberg/LANDesk-IncidentService
-cd LANDesk-IncidentService
+git clone https://github.com/br0mberg/SupportDesk-IncidentService
+cd SupportDesk-IncidentService
 ```
 
 #### 2. Configure your application.properties
