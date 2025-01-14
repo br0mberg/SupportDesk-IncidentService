@@ -55,7 +55,7 @@ services:
     environment:
       POSTGRES_DB: incident_service
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 9320
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
