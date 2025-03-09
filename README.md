@@ -1,5 +1,7 @@
 # Incident Service
 
+### Habr publication: https://habr.com/ru/articles/870640/
+### Telegram: @brombinandrey
 ## Overview
 The Incident Service is a key component of the support automation system, designed to manage and process user-reported incidents. This microservice enables functionalities like creating, viewing, editing, and deleting incidents, along with assigning priorities, categories, and responsible departments.
 
