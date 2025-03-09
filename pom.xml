@@ -108,11 +108,6 @@
 			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.projectreactor.kafka</groupId>
-			<artifactId>reactor-kafka</artifactId>
-			<version>${reactor-kafka.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>

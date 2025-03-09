@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import ru.brombin.incident_service.dto.IncidentFilterDto;
 import ru.brombin.incident_service.entity.*;
+import ru.brombin.incident_service.entity.Incident_;
 
 import java.util.ArrayList;
 import java.util.List;

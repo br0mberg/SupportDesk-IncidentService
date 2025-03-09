@@ -11,10 +11,7 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import reactor.kafka.sender.KafkaSender;
-import reactor.kafka.sender.SenderOptions;
 import ru.brombin.incident_service.dto.DeleteImageRequest;
-import ru.brombin.incident_service.dto.ImageDto;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,12 +22,6 @@ public class KafkaConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     String bootstrapServers;
-
-    @Value("${spring.kafka.producer.key-serializer}")
-    String keySerializer;
-
-    @Value("${spring.kafka.producer.value-serializer}")
-    String valueSerializer;
 
     @Value("${spring.kafka.producer.retries}")
     Integer retries;
@@ -51,16 +42,9 @@ public class KafkaConfig {
     Integer lingerMs;
 
     @Bean
-    public KafkaSender<String, DeleteImageRequest> kafkaSender() {
-        SenderOptions<String, DeleteImageRequest> senderOptions = SenderOptions.create(producerConfigs());
-        return KafkaSender.create(senderOptions);
-    }
-
-    @Bean
     public KafkaTemplate<String, DeleteImageRequest> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
-
 
     private ProducerFactory<String, DeleteImageRequest> producerFactory() {
         return new DefaultKafkaProducerFactory<>(producerConfigs(), new StringSerializer(), new JsonSerializer<>());
@@ -70,8 +54,8 @@ public class KafkaConfig {
     public Map<String, Object> producerConfigs() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializer);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, valueSerializer);
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         props.put(ProducerConfig.RETRIES_CONFIG, retries);
         props.put(ProducerConfig.ACKS_CONFIG, acks);
         props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, deliveryTimeout);

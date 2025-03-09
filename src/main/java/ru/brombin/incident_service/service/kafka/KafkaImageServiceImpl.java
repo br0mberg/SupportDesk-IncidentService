@@ -1,12 +1,20 @@
 package ru.brombin.incident_service.service.kafka;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.kafka.sender.KafkaSender;
@@ -21,30 +29,32 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@FieldDefaults(level= AccessLevel.PRIVATE, makeFinal = true)
 public class KafkaImageServiceImpl implements KafkaImageService {
 
-    private final KafkaSender<String, DeleteImageRequest> kafkaSender;
+    KafkaTemplate<String, DeleteImageRequest> kafkaTemplate;
 
+    @NonFinal
     @Value("${kafka.delete-image.topic}")
     String deleteImageTopic;
 
-    private List<Header> createHeaders(String jwtToken) {
-        return List.of(new RecordHeader("Authorization", jwtToken.getBytes(StandardCharsets.UTF_8)));
-    }
-
     @Override
     public void deleteImage(DeleteImageRequest deleteImageRequest, String jwtToken) {
-        List<Header> headers = createHeaders(jwtToken);
-        SenderRecord<String, DeleteImageRequest, Object> senderRecord = SenderRecord.create(
-                new ProducerRecord<>(deleteImageTopic, null, null, null, deleteImageRequest, headers), null
-        );
+        Message<DeleteImageRequest> message = MessageBuilder
+                .withPayload(deleteImageRequest)
+                .setHeader(KafkaHeaders.TOPIC, deleteImageTopic)
+                .setHeader(KafkaHeaders.KEY, "delete-image-key")
+                .setHeader("Authorization", jwtToken)
+                .build();
 
-        kafkaSender.send(Mono.just(senderRecord))
-                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1)))
-                .subscribeOn(Schedulers.boundedElastic())
-                .doOnError(e ->
-                        log.error("Failed to send delete image request: {}", e.getMessage()))
-                .subscribe(result ->
-                        log.info("Delete image request sent successfully with offset: {}", result.recordMetadata().offset()));
+        kafkaTemplate.send(message)
+                .whenComplete((result, ex) -> {
+                    if (ex == null) {
+                        log.info("Delete image request sent successfully with offset: {}",
+                                result.getRecordMetadata().offset());
+                    } else {
+                        log.error("Failed to send delete image request: {}", ex.getMessage());
+                    }
+                });
     }
 }

@@ -42,7 +42,7 @@ public class IncidentServiceImpl implements IncidentService{
     public Incident findById(Long id) {
         Incident incident = incidentRepository.findById(id).orElseThrow(() ->
                 new NotFoundException("Incident", id));
-        log.info("Incicent with id: {} found successfully", id);
+        log.info("Incident with id: {} found successfully", id);
         return incident;
     }
 
