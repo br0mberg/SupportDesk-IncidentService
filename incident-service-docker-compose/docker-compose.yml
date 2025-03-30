@@ -1,10 +1,109 @@
-volumes:
-  volume1:
-  postgres-data:
+version: '3.8'
 
 services:
+  image-postgres:
+    image: postgres:latest
+    container_name: image-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 9320
+      POSTGRES_DB: image-service-db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5433:5432"
+    volumes:
+      - image_postgres_data:/var/lib/postgresql/data
+    networks:
+      - support-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: supersecurepassword
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "9000:9000"
+      - "9003:9003"
+    command: server /data --console-address ":9003"
+    volumes:
+      - minio_data:/data
+    networks:
+      - support-network
+
+  image-service:
+    build:
+      context: ../../SupportDesk-ImageService  # Путь к папке с Dockerfile
+      dockerfile: Dockerfile
+    container_name: image-service
+    ports:
+      - "8082:8082"
+      - "50051:50051"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://image-postgres:5432/image-service-db
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka1:9092
+      MINIO_ENDPOINT: http://minio:9000
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: keycloak:8080/realms/IncidentManagement
+    depends_on:
+      - image-postgres
+      - minio
+      - kafka1
+    networks:
+      - support-network
+
+  # СЕРВИСЫ ДЛЯ INCIDENT-SERVICE
+  incident-postgres:
+    image: postgres:latest
+    container_name: incident-postgres
+    environment:
+      POSTGRES_DB: incident_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+    volumes:
+      - incident_postgres_data:/var/lib/postgresql/data
+    networks:
+      - support-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://incident-postgres:5432/incident_service
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      KC_IMPORT: /opt/keycloak/data/import/incident-management-realm.json
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
+    depends_on:
+      incident-postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    command: start-dev --import-realm
+    networks:
+      - support-network
+
   kafka1:
-    image: 'bitnami/kafka:3.9'
+    image: bitnami/kafka:3.9
     container_name: kafka1
     environment:
       - KAFKA_ENABLE_KRAFT=yes
@@ -12,7 +111,7 @@ services:
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka1:9092
       - KAFKA_CFG_NODE_ID=1
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka1:9093
       - ALLOW_PLAINTEXT_LISTENER=yes
@@ -22,62 +121,40 @@ services:
       - KAFKA_CFG_REPLICA_FETCH_MAX_BYTES=20971520
       - KAFKA_CFG_CONSUMER_FETCH_MAX_WAIT_MS=5000
       - KAFKA_CFG_CONSUMER_SESSION_TIMEOUT_MS=30000
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_CFG_NUM_PARTITIONS=3
+      - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
     ports:
       - "9092:9092"
     volumes:
-      - volume1:/bitnami/kafka
-
-  kafka-ui:
-    container_name: kafka-ui
-    image: 'provectuslabs/kafka-ui:latest'
-    ports:
-      - "8383:8383"
-    environment:
-      - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka1:9092
-      - KAFKA_CLUSTERS_0_NAME=r4zt_wrqTRuT7W2NJsB_GA
-      - SERVER_PORT=8383
-
-  create-topics:
-    image: 'bitnami/kafka:3.3.1'
-    container_name: create-topics
-    depends_on:
-      - kafka1
-    entrypoint: |
-      sh -c "
-      sleep 20;
-      kafka-topics.sh --create --topic delete-image-topic --bootstrap-server kafka1:9092 --partitions 1 --replication-factor 1
-      kafka-topics.sh --create --topic delete-image-topic-dlt --bootstrap-server kafka1:9092 --partitions 1 --replication-factor 1
-      "
-
-  postgres:
-    image: postgres:latest
-    container_name: postgres
-    environment:
-      POSTGRES_DB: incident_service
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - kafka_data:/bitnami/kafka
     networks:
-      - incident-service-network
+      - support-network
 
   incident-service:
     build:
       context: ../
       dockerfile: Dockerfile
-    depends_on:
-      - postgres
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/incident_service
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: 9320
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/IncidentManagement
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka1:9092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://incident-postgres:5432/incident_service
     ports:
       - "8081:8081"
+    depends_on:
+      - incident-postgres
+      - kafka1
+      - keycloak
     networks:
-      - incident-service-network
+      - support-network
+
+volumes:
+  image_postgres_data:
+  minio_data:
+  incident_postgres_data:
+  kafka_data:
 
 networks:
-  incident-service-network:
-    driver: bridge
+  support-network:
+    external: true
+    name: support-network

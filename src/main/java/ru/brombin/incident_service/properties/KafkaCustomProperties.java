@@ -17,11 +17,11 @@ public class KafkaCustomProperties {
     @Data
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class Producer {
-        Integer retries;
+        int retries;
         String acks;
-        Integer deliveryTimeout;
-        Integer retryBackoff;
-        Integer lingerMs;
-        Boolean enableIdempotence;
+        int deliveryTimeout;
+        int retryBackoff;
+        int lingerMs;
+        boolean enableIdempotence;
     }
 }
