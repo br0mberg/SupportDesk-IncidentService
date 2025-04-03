@@ -50,6 +50,7 @@ public class IncidentServiceImpl implements IncidentService{
     public Incident save(Long initiatorId, IncidentDto incidentDto) {
         Incident incident = incidentMapper.toEntity(incidentDto);
         incident.setInitiatorId(initiatorId);
+        if (incident.getStatus().describeConstable().isEmpty()) incident.setStatus(IncidentStatus.OPEN);
 
         Incident savedIncident = incidentRepository.save(incident);
         log.info("Incident with ID: {} created successfully", savedIncident.getId());

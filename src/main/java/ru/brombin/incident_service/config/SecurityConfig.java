@@ -7,14 +7,20 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,20 +40,24 @@ public class SecurityConfig {
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        authoritiesConverter.setAuthorityPrefix("");
 
-        converter.setPrincipalClaimName("preferred_username");
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
-            Collection<GrantedAuthority> authorities = authoritiesConverter.convert(jwt);
-            List<String> roles = jwt.getClaimAsStringList("spring_sec_roles");
+            // 1. Получаем realm_access из payload JWT
+            Map<String, Object> realmAccess = jwt.getClaim("realm_access");
 
-            return Stream.concat(
-                    authorities.stream(),
-                    roles.stream()
-                            .map(role -> new SimpleGrantedAuthority(role))
-            ).collect(Collectors.toList());
+            // 2. Извлекаем список ролей
+            List<String> roles = (realmAccess != null && realmAccess.containsKey("roles"))
+                    ? (List<String>) realmAccess.get("roles")
+                    : Collections.emptyList();
+
+            // 3. Преобразуем роли в GrantedAuthority
+            return roles.stream()
+                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role)) // Добавляем префикс ROLE_
+                    .collect(Collectors.toList());
         });
+
+        // Устанавливаем поле для имени пользователя
+        converter.setPrincipalClaimName("preferred_username");
 
         return converter;
     }

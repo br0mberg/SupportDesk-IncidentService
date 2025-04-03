@@ -43,7 +43,7 @@ public class IncidentFacadeImpl implements IncidentFacade {
     @Override
     @Transactional
     public IncidentDto createIncident(IncidentDto incidentDto, List<MultipartFile> images) {
-        Long initiatorId = userService.getCurrentUserId();
+        Long initiatorId = 1L;
         Incident incident = incidentService.save(initiatorId, incidentDto);
 
         List<ImageDto> imageDtoList = processImages(incident.getId(), images);

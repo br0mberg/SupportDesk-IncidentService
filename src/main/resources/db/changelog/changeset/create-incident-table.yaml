@@ -44,7 +44,7 @@ databaseChangeLog:
                   name: initiator_id
                   type: bigint
                   constraints:
-                    nullable: false
+                    nullable: true
               - column:
                   name: status
                   type: varchar(50)

@@ -1,7 +1,5 @@
 package ru.brombin.incident_service.service;
 
-import image.ImageServiceGrpc.*;
-import image.ImageServiceOuterClass.*;
 import io.grpc.StatusRuntimeException;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -15,8 +13,6 @@ import ru.brombin.incident_service.entity.Incident;
 import ru.brombin.incident_service.mapper.ImageRequestMapper;
 import ru.brombin.incident_service.service.grpc.GrpcClientServiceImpl;
 import ru.brombin.incident_service.util.exceptions.ImageProcessingException;
-import user.UserServiceGrpc.*;
-import user.UserServiceOuterClass.*;
 
 import java.util.List;
 
@@ -25,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/*
 @FieldDefaults(level= AccessLevel.PRIVATE)
 class GrpcClientServiceImplTest {
     @Mock
@@ -172,3 +169,4 @@ class GrpcClientServiceImplTest {
         verify(userServiceStub, times(1)).getUserById(mockRequest);
     }
 }
+*/

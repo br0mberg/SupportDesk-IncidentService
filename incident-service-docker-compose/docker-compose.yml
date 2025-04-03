@@ -91,6 +91,7 @@ services:
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: postgres
       KC_IMPORT: /opt/keycloak/data/import/incident-management-realm.json
+      KC_HTTPS_ENABLED: false
     volumes:
       - ./keycloak:/opt/keycloak/data/import
     depends_on:
@@ -109,25 +110,56 @@ services:
       - KAFKA_ENABLE_KRAFT=yes
       - KAFKA_CFG_PROCESS_ROLES=broker,controller
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka1:9092
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka1:9092,EXTERNAL://localhost:9094  # <-- Основное изменение
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
       - KAFKA_CFG_NODE_ID=1
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka1:9093
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W2NJsB_GA
-      - KAFKA_CFG_MAX_REQUEST_SIZE=20971520
-      - KAFKA_CFG_MESSAGE_MAX_BYTES=20971520
-      - KAFKA_CFG_REPLICA_FETCH_MAX_BYTES=20971520
+      - KAFKA_CFG_MAX_REQUEST_SIZE=209715200
+      - KAFKA_CFG_MESSAGE_MAX_BYTES=209715200
+      - KAFKA_CFG_REPLICA_FETCH_MAX_BYTES=209715200
       - KAFKA_CFG_CONSUMER_FETCH_MAX_WAIT_MS=5000
       - KAFKA_CFG_CONSUMER_SESSION_TIMEOUT_MS=30000
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
       - KAFKA_CFG_NUM_PARTITIONS=3
       - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
+      - KAFKA_JMX_PORT=9999
+      - KAFKA_JMX_HOSTNAME=kafka1
+      - JMX_PORT=9999
     ports:
       - "9092:9092"
+      - "9094:9094"
+      - "9093:9093"
+      - "9999:9999"
     volumes:
       - kafka_data:/bitnami/kafka
+      - ./jmx_prometheus_javaagent.jar:/opt/bitnami/kafka/jmx_prometheus_javaagent.jar
+      - ./kafka-jmx-exporter.yml:/etc/kafka/jmx-exporter.yml
+    networks:
+      - support-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "9095:9095"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka1:9092
+    depends_on:
+      - kafka1
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    container_name: kafka-exporter
+    environment:
+      KAFKA_BROKERS: "kafka1:9092"
+      LOG_LEVEL: "debug"
+    ports:
+      - "9308:9308"
+    depends_on:
+      - kafka1
     networks:
       - support-network
 
@@ -148,7 +180,43 @@ services:
     networks:
       - support-network
 
+  # Jaeger для трейсинга gRPC
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+    networks:
+      - support-network
+
+  # Prometheus (только для сбора метрик)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - support-network
+
+  # Grafana для визуализации
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana  # Сохранение дашбордов
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "admin"  # Пароль по умолчанию
+    depends_on:
+      - prometheus
+    networks:
+      - support-network
+
 volumes:
+  grafana_data:
   image_postgres_data:
   minio_data:
   incident_postgres_data:
