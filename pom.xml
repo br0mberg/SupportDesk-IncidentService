@@ -51,7 +51,7 @@
 		<springdoc-openapi-starter-webmvc-ui.version>2.6.0</springdoc-openapi-starter-webmvc-ui.version>
 		<maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
 		<maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
-		<io.prometheus.jmx.version>0.17.2</io.prometheus.jmx.version>
+		<io.micrometer.version>1.12.0</io.micrometer.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -207,9 +207,9 @@
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>io.prometheus.jmx</groupId>
-			<artifactId>jmx_prometheus_javaagent</artifactId>
-			<version>${io.prometheus.jmx.version}</version>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+			<version>${io.micrometer.version}</version>
 		</dependency>
 	</dependencies>
 	<build>

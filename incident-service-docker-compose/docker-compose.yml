@@ -110,9 +110,9 @@ services:
       - KAFKA_ENABLE_KRAFT=yes
       - KAFKA_CFG_PROCESS_ROLES=broker,controller
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka1:9092,EXTERNAL://localhost:9094  # <-- Основное изменение
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094,INTERNAL://:29092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka1:9092,EXTERNAL://localhost:9094, INTERNAL://kafka1:29092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT
       - KAFKA_CFG_NODE_ID=1
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka1:9093
       - ALLOW_PLAINTEXT_LISTENER=yes
@@ -125,41 +125,12 @@ services:
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
       - KAFKA_CFG_NUM_PARTITIONS=3
       - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
-      - KAFKA_JMX_PORT=9999
-      - KAFKA_JMX_HOSTNAME=kafka1
-      - JMX_PORT=9999
     ports:
       - "9092:9092"
       - "9094:9094"
       - "9093:9093"
-      - "9999:9999"
     volumes:
       - kafka_data:/bitnami/kafka
-      - ./jmx_prometheus_javaagent.jar:/opt/bitnami/kafka/jmx_prometheus_javaagent.jar
-      - ./kafka-jmx-exporter.yml:/etc/kafka/jmx-exporter.yml
-    networks:
-      - support-network
-
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    ports:
-      - "9095:9095"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka1:9092
-    depends_on:
-      - kafka1
-
-  kafka-exporter:
-    image: danielqsj/kafka-exporter:latest
-    container_name: kafka-exporter
-    environment:
-      KAFKA_BROKERS: "kafka1:9092"
-      LOG_LEVEL: "debug"
-    ports:
-      - "9308:9308"
-    depends_on:
-      - kafka1
     networks:
       - support-network
 
@@ -177,15 +148,6 @@ services:
       - incident-postgres
       - kafka1
       - keycloak
-    networks:
-      - support-network
-
-  # Jaeger для трейсинга gRPC
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    container_name: jaeger
-    ports:
-      - "16686:16686"
     networks:
       - support-network
 
@@ -212,6 +174,19 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: "admin"  # Пароль по умолчанию
     depends_on:
       - prometheus
+    networks:
+      - support-network
+
+  kafkaui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8989:8080"
+    environment:
+      - DYNAMIC_CONFIG_ENABLED="true"
+      - KAFKA_CLUSTERS_0_NAME=r4zt_wrqTRuT7W2NJsB_GA
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka1:9092
+    depends_on:
+      - kafka1
     networks:
       - support-network
 
