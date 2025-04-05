@@ -125,10 +125,13 @@ services:
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
       - KAFKA_CFG_NUM_PARTITIONS=3
       - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
+      - KAFKA_JMX_ENABLED=true
+      - KAFKA_JMX_PORT=5555
     ports:
       - "9092:9092"
       - "9094:9094"
       - "9093:9093"
+      - "5555:5555"
     volumes:
       - kafka_data:/bitnami/kafka
     networks:
