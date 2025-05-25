@@ -81,7 +81,7 @@ git clone https://github.com/br0mberg/SupportDesk-IncidentService
 cd SupportDesk-IncidentService
 ```
 
-#### 2. Configure your application.properties
+#### 2. Настройка конфигураций
 Make sure to set up the following properties in your application.properties 
 file located in src/main/resources/.
 
