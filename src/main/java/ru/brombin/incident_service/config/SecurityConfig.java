@@ -62,7 +62,7 @@ public class SecurityConfig {
 
             // 3. Преобразуем роли в GrantedAuthority
             return roles.stream()
-                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role)) // Добавляем префикс ROLE_
+                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                     .collect(Collectors.toList());
         });
 
