@@ -80,19 +80,20 @@ cd SupportDesk-IncidentService
 ```
 
 ### 2. Настройка конфигураций
-Make sure to set up the following properties in your application.properties 
-file located in src/main/resources/.
+Убедитесь, что настроили следующие свойства в вашем файле application.properties, 
+который находится в src/main/resources/.
 
 ### 3. Создание docker-network
 ```bash
 docker network create support-network
 ```
 ### 4. Запуск через docker-compose
-Use the following docker-compose.yml to configure and start your containers.
+Используйте следующий docker-compose.yml для настройки и запуска ваших контейнеров.
 ```bash
 docker-compose up --build
 ```
-This will start the Incident Service, Kafka, Postgres, and all other required services containers.
+Эта команда запустит Incident Service, Kafka, Postgres и все другие необходимые сервисы в контейнерах.
+Для запуска ImageService следуйте инструкции в [репозитории](https://github.com/br0mberg/SupportDesk-ImageService).
 
 ### 5. Доступ к сервисам и мониторинг
 - The Incident Service API will be accessible at http://localhost:8081.
@@ -103,6 +104,7 @@ This will start the Incident Service, Kafka, Postgres, and all other required se
 ## 🤝 Обратная связь
 
 Если у вас возникли вопросы или предложения, свяжитесь со мной:
+
 ✉️ Email: andrey@brombin.ru
 
 Приятного использования! 🎉
