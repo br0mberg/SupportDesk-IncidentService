@@ -14,8 +14,9 @@
 - [Запуск](#-запуск)
   - [1. Клонирование](#1-клонирование)
   - [2. Настройка конфигураций](#2-настройка-конфигураций)
-  - [3. Запуск через Docker Compose](#3-запуск-через-docker-compose)
-- [Ссылки на сервисы](#-ссылки-на-сервисы)
+  - [3. Создание docker-network](#3-cоздание-docker-network)
+  - [4. Запуск через Docker Compose](#4-запуск-через-docker-compose)
+  - [5. Мониторинг и api url's](#5-доступ-к-сервисам-и-мониторинг)
 - [Файл Docker Compose](#-файл-docker-compose)
 - [Обратная связь](#-обратная-связь)
 
@@ -32,7 +33,7 @@
 - Уведомление администраторов о новых инцидентах
 - Асинхронная обработка изображений через Kafka
 - Аутентификация по JWT Bearer через Keycloak
-- Интеграция с [User Service](#) и [Image Service](#)
+- Интеграция с [Image Service](https://github.com/br0mberg/SupportDesk-ImageService) и UserService (на доработке)
 
 ---
 
@@ -42,7 +43,6 @@
 ✅ gRPC-взаимодействие с другими сервисами  
 ✅ Kafka-подписки и публикации  
 ✅ Keycloak для авторизации/аутентификации  
-✅ Метрики для Prometheus  
 ✅ Документация через Swagger/OpenAPI
 
 ---
@@ -57,7 +57,6 @@
 | Брокер сообщений  | Apache Kafka + Kafka UI            |
 | DevOps            | Docker, Docker Compose             |
 | Маппинг           | MapStruct, Lombok                  |
-| Мониторинг        | Prometheus, Grafana                |
 | Документация API  | Swagger/OpenAPI                    |
 
 ---
@@ -65,10 +64,10 @@
 ## 📦 Требования
 
 - [Docker](https://www.docker.com/)
-- JDK 21+
-- PostgreSQL (если не через Docker)
-- Kafka (если не через Docker)
-- [Keycloak](https://www.keycloak.org/)
+- [JDK 21+](https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html)
+- [PostgreSQL](https://www.postgresql.org/) (если не через Docker)
+- [Kafka](https://kafka.apache.org/downloads) (если не через Docker)
+- [Keycloak](https://www.keycloak.org/) (если не через Docker)
 
 ---
 
@@ -81,22 +80,22 @@ git clone https://github.com/br0mberg/SupportDesk-IncidentService
 cd SupportDesk-IncidentService
 ```
 
-#### 2. Настройка конфигураций
+### 2. Настройка конфигураций
 Make sure to set up the following properties in your application.properties 
 file located in src/main/resources/.
 
-### 3. Set up docker-network
+### 3. Создание docker-network
 ```bash
 docker network create support-network
 ```
-### 4. Set up Docker Compose
+### 4. Запуск через docker-compose
 Use the following docker-compose.yml to configure and start your containers.
 ```bash
 docker-compose up --build
 ```
 This will start the Incident Service, Kafka, Postgres, and all other required services containers.
 
-### 5. Access the services
+### 5. Доступ к сервисам и мониторинг
 - The Incident Service API will be accessible at http://localhost:8081.
 - Kafka UI will be available at http://localhost:8383 for managing Kafka messages.
 - Keycloak will be accessible at http://localhost:8080 for user authentication.
