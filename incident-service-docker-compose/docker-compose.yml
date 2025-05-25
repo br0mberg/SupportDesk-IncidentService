@@ -1,66 +1,7 @@
 version: '3.8'
 
 services:
-  image-postgres:
-    image: postgres:latest
-    container_name: image-postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 9320
-      POSTGRES_DB: image-service-db
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    ports:
-      - "5433:5432"
-    volumes:
-      - image_postgres_data:/var/lib/postgresql/data
-    networks:
-      - support-network
 
-  minio:
-    image: minio/minio:latest
-    container_name: minio
-    environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: supersecurepassword
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    ports:
-      - "9000:9000"
-      - "9003:9003"
-    command: server /data --console-address ":9003"
-    volumes:
-      - minio_data:/data
-    networks:
-      - support-network
-
-  image-service:
-    build:
-      context: ../../SupportDesk-ImageService  # Путь к папке с Dockerfile
-      dockerfile: Dockerfile
-    container_name: image-service
-    ports:
-      - "8082:8082"
-      - "50051:50051"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://image-postgres:5432/image-service-db
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka1:9092
-      MINIO_ENDPOINT: http://minio:9000
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: keycloak:8080/realms/IncidentManagement
-    depends_on:
-      - image-postgres
-      - minio
-      - kafka1
-    networks:
-      - support-network
-
-  # СЕРВИСЫ ДЛЯ INCIDENT-SERVICE
   incident-postgres:
     image: postgres:latest
     container_name: incident-postgres
