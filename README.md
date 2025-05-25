@@ -1,7 +1,7 @@
 # 🛠 Incident Service
 
 📘 [Habr статья](https://habr.com/ru/articles/870640/)  
-✉️ Telegram: [@brombinandrey](https://t.me/brombinandrey)
+✉️ Email: andrey@brombin.ru
 
 ---
 
@@ -101,9 +101,12 @@ This will start the Incident Service, Kafka, Postgres, and all other required se
 - Keycloak will be accessible at http://localhost:8080 for user authentication.
 - Swagger UI will be accessible at http://localhost:8081/swagger-ui.html for api doc.
 
-TODO: UserService integration
-For more details on available endpoints, please refer to the Swagger documentation at http://localhost:8081/swagger-ui.html.
+##🤝 Обратная связь
 
-Happy using! 🎉
+Если у вас возникли вопросы или предложения, свяжитесь со мной:
+✉️ Email: andrey@brombin.ru
 
-Let me know if you need any more adjustments!
+Приятного использования! 🎉
+
+
+
