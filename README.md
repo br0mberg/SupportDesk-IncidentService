@@ -17,7 +17,6 @@
   - [3. Создание Docker Network](#3-создание-docker-network)
   - [4. Запуск через Docker Compose](#4-запуск-через-docker-compose)
   - [5. Доступ к сервисам и мониторинг](#5-доступ-к-сервисам-и-мониторинг)
-- [Файл Docker Compose](#-файл-docker-compose)
 - [Обратная связь](#-обратная-связь)
 
 ---
@@ -101,7 +100,7 @@ This will start the Incident Service, Kafka, Postgres, and all other required se
 - Keycloak will be accessible at http://localhost:8080 for user authentication.
 - Swagger UI will be accessible at http://localhost:8081/swagger-ui.html for api doc.
 
-##🤝 Обратная связь
+## 🤝 Обратная связь
 
 Если у вас возникли вопросы или предложения, свяжитесь со мной:
 ✉️ Email: andrey@brombin.ru
