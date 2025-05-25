@@ -79,19 +79,24 @@
 ```bash
 git clone https://github.com/br0mberg/SupportDesk-IncidentService
 cd SupportDesk-IncidentService
+```
 
 #### 2. Configure your application.properties
 Make sure to set up the following properties in your application.properties 
 file located in src/main/resources/.
 
-### 3. Set up Docker Compose
+### 3. Set up docker-network
+```bash
+docker network create support-network
+```
+### 4. Set up Docker Compose
 Use the following docker-compose.yml to configure and start your containers.
 ```bash
 docker-compose up --build
 ```
 This will start the Incident Service, Kafka, Postgres, and all other required services containers.
 
-### 4. Access the services
+### 5. Access the services
 - The Incident Service API will be accessible at http://localhost:8081.
 - Kafka UI will be available at http://localhost:8383 for managing Kafka messages.
 - Keycloak will be accessible at http://localhost:8080 for user authentication.
